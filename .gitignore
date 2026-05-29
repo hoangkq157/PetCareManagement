@@ -1,0 +1,14 @@
+# Build output - không cần push
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+
+# appsettings chứa connection string cá nhân - KHÔNG push
+appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db
