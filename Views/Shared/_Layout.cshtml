@@ -1,4 +1,15 @@
-﻿<!DOCTYPE html>
+﻿@using PetCareManagement.Data
+@inject PetCareDbContext _layoutCtx
+
+@{
+    var homNayLayout = DateOnly.FromDateTime(DateTime.Today);
+
+    var soCanhBao = _layoutCtx.TiemPhongs.Count(t =>
+        t.NgayTiemTiep.HasValue &&
+        t.NgayTiemTiep.Value >= homNayLayout &&
+        t.NgayTiemTiep.Value <= homNayLayout.AddDays(7));
+}
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -39,7 +50,24 @@
                             <a class="nav-link" asp-controller="LichHen" asp-action="Index">📅 Lịch hẹn</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="TiemPhong" asp-action="Index">💉 Tiêm phòng</a>
+                            <a class="nav-link" asp-controller="TiemPhong" asp-action="Index">
+                                💉 Tiêm phòng
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-controller="TiemPhong"
+                               asp-action="CanhBao">
+                                🔔 Cảnh báo
+
+                                @if (soCanhBao > 0)
+                                {
+                                    <span class="badge bg-danger rounded-pill">
+                                        @soCanhBao
+                                    </span>
+                          }
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="DichVu" asp-action="Index">✂️ Dịch vụ</a>

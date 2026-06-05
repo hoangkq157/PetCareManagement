@@ -1,0 +1,26 @@
+@model List<PetCareManagement.Models.TiemPhong>
+@{ ViewData["Title"] = "Cảnh báo tiêm phòng"; }
+
+<h4>⚠️ Thú cưng sắp đến hạn tiêm phòng (trong 7 ngày)</h4>
+<p>Có @Model.Count thú cưng cần tiêm phòng</p>
+
+<table class="table table-bordered">
+<thead><tr>
+    <th>Tên thú cưng</th><th>Chủ nuôi</th>
+    <th>Vaccine</th><th>Ngày tiêm tới</th><th>Còn lại</th>
+</tr></thead>
+<tbody>
+@foreach (var tp in Model)
+{
+    var conLai = tp.NgayTiemTiep!.Value.DayNumber
+                 - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+    var rowClass = conLai <= 3 ? "table-danger" : "table-warning";
+    <tr class="@rowClass">
+        <td>@tp.MaTcNavigation?.TenThuCung</td>
+        <td>@tp.MaTcNavigation?.MaCnNavigation?.SoDienThoai</td>
+        <td>@tp.TenVaccine</td>
+        <td>@tp.NgayTiemTiep?.ToString("dd/MM/yyyy")</td>
+        <td><strong>Còn @conLai ngày</strong></td>
+    </tr>
+}
+</tbody></table>
