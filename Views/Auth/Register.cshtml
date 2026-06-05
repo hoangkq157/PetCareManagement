@@ -1,0 +1,207 @@
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký — PetCare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 0;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+        .auth-header {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border-radius: 16px 16px 0 0;
+            padding: 32px 32px 24px;
+            text-align: center;
+            color: white;
+        }
+        .auth-header .logo { font-size: 44px; }
+        .auth-header h1 { font-size: 20px; font-weight: 700; margin: 8px 0 4px; }
+        .auth-header p  { font-size: 13px; opacity: .85; margin: 0; }
+        .auth-body { padding: 28px 32px 32px; }
+        .form-label { font-weight: 500; font-size: 14px; }
+        .btn-auth {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 600;
+            letter-spacing: .3px;
+            color: white;
+        }
+        .btn-auth:hover { opacity: .9; color: white; }
+        .divider {
+            text-align: center;
+            margin: 18px 0 14px;
+            font-size: 13px;
+            color: #aaa;
+            position: relative;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 38%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        .divider::before { left: 0; }
+        .divider::after  { right: 0; }
+        .password-hint { font-size: 12px; color: #888; margin-top: 4px; }
+        /* Hiệu ứng strength bar */
+        #strengthBar { height: 4px; border-radius: 2px; transition: width .3s, background .3s; }
+    </style>
+</head>
+<body>
+    <div class="auth-card card">
+        <div class="auth-header">
+            <div class="logo">🐾</div>
+            <h1>Tạo tài khoản mới</h1>
+            <p>PetCare Management System</p>
+        </div>
+        <div class="auth-body">
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger py-2 mb-3" role="alert">
+                    ⚠️ @ViewBag.Error
+                </div>
+            }
+
+            <form asp-controller="Auth" asp-action="Register" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                @* Họ tên *@
+                <div class="mb-3">
+                    <label class="form-label" for="hoTen">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" id="hoTen" name="hoTen"
+                           class="form-control"
+                           placeholder="Nguyễn Văn A"
+                           value="@ViewBag.HoTen"
+                           maxlength="100" required autofocus />
+                </div>
+
+                @* Email *@
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+                    <input type="email" id="email" name="email"
+                           class="form-control"
+                           placeholder="example@petcare.vn"
+                           value="@ViewBag.Email"
+                           maxlength="100" required />
+                </div>
+
+                @* Số điện thoại (không bắt buộc) *@
+                <div class="mb-3">
+                    <label class="form-label" for="soDienThoai">Số điện thoại</label>
+                    <input type="tel" id="soDienThoai" name="soDienThoai"
+                           class="form-control"
+                           placeholder="09xxxxxxxx"
+                           value="@ViewBag.SoDienThoai"
+                           maxlength="15" />
+                </div>
+
+                @* Mật khẩu *@
+                <div class="mb-3">
+                    <label class="form-label" for="matKhau">Mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" id="matKhau" name="matKhau"
+                           class="form-control"
+                           placeholder="Tối thiểu 6 ký tự"
+                           maxlength="255" required
+                           oninput="checkStrength(this.value)" />
+                    <div class="mt-1 bg-light rounded" style="height:4px">
+                        <div id="strengthBar" style="width:0%"></div>
+                    </div>
+                    <div id="strengthText" class="password-hint"></div>
+                </div>
+
+                @* Xác nhận mật khẩu *@
+                <div class="mb-4">
+                    <label class="form-label" for="xacNhanMatKhau">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" id="xacNhanMatKhau" name="xacNhanMatKhau"
+                           class="form-control"
+                           placeholder="Nhập lại mật khẩu"
+                           maxlength="255" required
+                           oninput="checkMatch()" />
+                    <div id="matchMsg" class="password-hint"></div>
+                </div>
+
+                <button type="submit" class="btn btn-auth w-100">
+                    Đăng ký
+                </button>
+            </form>
+
+            <div class="divider">hoặc</div>
+
+            <a asp-controller="Auth" asp-action="Login"
+               class="btn btn-outline-secondary w-100" style="border-radius:8px; font-size:14px">
+                Đã có tài khoản? Đăng nhập
+            </a>
+
+            <p class="text-center text-muted mt-4 mb-0" style="font-size:12px">
+                &copy; 2026 PetCare Management System
+            </p>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function checkStrength(val) {
+            const bar  = document.getElementById('strengthBar');
+            const text = document.getElementById('strengthText');
+            if (!val) { bar.style.width = '0%'; text.textContent = ''; return; }
+
+            let score = 0;
+            if (val.length >= 6)  score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = [
+                { pct: '20%', color: '#e53935', label: 'Rất yếu'  },
+                { pct: '40%', color: '#fb8c00', label: 'Yếu'      },
+                { pct: '60%', color: '#fdd835', label: 'Trung bình'},
+                { pct: '80%', color: '#43a047', label: 'Mạnh'     },
+                { pct:'100%', color: '#1e88e5', label: 'Rất mạnh' },
+            ];
+            const lv = levels[Math.min(score - 1, 4)] || levels[0];
+            bar.style.width      = lv.pct;
+            bar.style.background = lv.color;
+            text.textContent     = lv.label;
+            text.style.color     = lv.color;
+        }
+
+        function checkMatch() {
+            const pw  = document.getElementById('matKhau').value;
+            const cpw = document.getElementById('xacNhanMatKhau').value;
+            const msg = document.getElementById('matchMsg');
+            if (!cpw) { msg.textContent = ''; return; }
+            if (pw === cpw) {
+                msg.textContent = '✅ Mật khẩu khớp';
+                msg.style.color = '#43a047';
+            } else {
+                msg.textContent = '❌ Mật khẩu không khớp';
+                msg.style.color = '#e53935';
+            }
+        }
+    </script>
+</body>
+</html>

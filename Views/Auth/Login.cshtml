@@ -1,0 +1,99 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null; // Trang login không dùng _Layout (không có navbar)
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập — PetCare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+        .login-header {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border-radius: 16px 16px 0 0;
+            padding: 36px 32px 28px;
+            text-align: center;
+            color: white;
+        }
+        .login-header .logo { font-size: 48px; }
+        .login-header h1 { font-size: 22px; font-weight: 700; margin: 8px 0 4px; }
+        .login-header p  { font-size: 13px; opacity: .85; margin: 0; }
+        .login-body { padding: 32px; }
+        .form-label { font-weight: 500; font-size: 14px; }
+        .btn-login {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 600;
+            letter-spacing: .3px;
+        }
+        .btn-login:hover { opacity: .9; }
+    </style>
+</head>
+<body>
+    <div class="login-card card">
+        <div class="login-header">
+            <div class="logo">🐾</div>
+            <h1>PetCare Management</h1>
+            <p>Hệ thống quản lý thú cưng</p>
+        </div>
+        <div class="login-body">
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger py-2 mb-3" role="alert">
+                    ⚠️ @ViewBag.Error
+                </div>
+            }
+
+            <form asp-controller="Auth" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email"
+                           class="form-control" placeholder="example@petcare.com"
+                           autocomplete="email" required autofocus />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" for="matKhau">Mật khẩu</label>
+                    <input type="password" id="matKhau" name="matKhau"
+                           class="form-control" placeholder="••••••••"
+                           autocomplete="current-password" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login w-100">
+                    Đăng nhập
+                </button>
+            </form>
+
+            <div class="text-center mt-3">
+                    <a asp-controller="Auth" asp-action="Register" style="font-size:13px;color:#1e88e5">Chưa có tài khoản? Đăng ký ngay</a>
+                </div>
+                <p class="text-center text-muted mt-3 mb-0" style="font-size:12px">
+                &copy; 2026 PetCare Management System
+            </p>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,8 +1,144 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">🐾 Dashboard</h2>
+    <small class="text-muted">Cập nhật: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</small>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        ✅ @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        ❌ @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* 4 thẻ thống kê *@
+<div class="row g-4 mb-4">
+    <div class="col-6 col-md-3">
+        <a asp-controller="ThuCung" asp-action="Index" class="text-decoration-none">
+            <div class="card text-center p-3 border-success h-100 shadow-sm">
+                <div class="display-5">🐾</div>
+                <h3 class="fw-bold text-success">@ViewBag.TotalPets</h3>
+                <p class="text-muted mb-0">Thú cưng</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center p-3 border-primary h-100 shadow-sm">
+            <div class="display-5">👤</div>
+            <h3 class="fw-bold text-primary">@ViewBag.TotalOwners</h3>
+            <p class="text-muted mb-0">Chủ nuôi</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <a asp-controller="LichHen" asp-action="Index" class="text-decoration-none">
+            <div class="card text-center p-3 border-warning h-100 shadow-sm">
+                <div class="display-5">📅</div>
+                <h3 class="fw-bold text-warning">@ViewBag.TodayApps</h3>
+                <p class="text-muted mb-0">Hẹn hôm nay</p>
+                @if (ViewBag.PendingApps != null && (int)ViewBag.PendingApps > 0)
+                {
+                    <span class="badge bg-warning text-dark mt-1">@ViewBag.PendingApps chờ duyệt</span>
+                }
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a asp-controller="TiemPhong" asp-action="Index" class="text-decoration-none">
+            <div class="card text-center p-3 border-danger h-100 shadow-sm">
+                <div class="display-5">💉</div>
+                <h3 class="fw-bold text-danger">@ViewBag.UpcomingVac</h3>
+                <p class="text-muted mb-0">Sắp tiêm phòng</p>
+                <small class="text-muted">(30 ngày tới)</small>
+            </div>
+        </a>
+    </div>
+</div>
+
+@* Dòng 2: Doanh thu + truy cập nhanh *@
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3 border-info h-100 shadow-sm text-center">
+            <div class="display-5">💰</div>
+            <h3 class="fw-bold text-info">
+                @{
+                    var revenue = (decimal)ViewBag.MonthRevenue;
+                }
+                @revenue.ToString("N0")đ
+            </h3>
+            <p class="text-muted mb-0">Doanh thu tháng @DateTime.Now.Month</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card p-3 h-100 shadow-sm">
+            <h6 class="text-muted mb-3">⚡ Truy cập nhanh</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="ThuCung" asp-action="Create" class="btn btn-outline-success btn-sm">➕ Thêm thú cưng</a>
+                <a asp-controller="LichHen" asp-action="Create" class="btn btn-outline-primary btn-sm">📅 Tạo lịch hẹn</a>
+                <a asp-controller="TiemPhong" asp-action="Create" class="btn btn-outline-danger btn-sm">💉 Ghi nhận tiêm</a>
+                <a asp-controller="DichVu" asp-action="Index" class="btn btn-outline-secondary btn-sm">✂️ Dịch vụ</a>
+                <a asp-controller="HoaDon" asp-action="Index" class="btn btn-outline-warning btn-sm">🧾 Hoá đơn</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Biểu đồ doanh thu theo tháng *@
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">📊 Doanh thu theo tháng — @DateTime.Now.Year</h6>
+    </div>
+    <div class="card-body">
+        <canvas id="revenueChart" height="80"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels  = @Html.Raw(ViewBag.ChartLabels);
+        const revenue = @Html.Raw(ViewBag.ChartRevenue);
+
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Doanh thu (đ)',
+                    data: revenue,
+                    backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                    borderColor:     'rgba(13, 110, 253, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ctx.parsed.y.toLocaleString('vi-VN') + 'đ'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: val => val.toLocaleString('vi-VN') + 'đ' }
+                    }
+                }
+            }
+        });
+    </script>
+}
