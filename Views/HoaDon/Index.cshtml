@@ -1,0 +1,66 @@
+@model IEnumerable<PetCareManagement.Models.HoaDon>
+@{
+    ViewData["Title"] = "Danh sách hoá đơn";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">🧾 Hoá đơn</h3>
+        <p class="text-muted mb-0">Theo dõi hoá đơn và trạng thái thanh toán.</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-controller="BaoCao" asp-action="DoanhThu">📊 Báo cáo doanh thu</a>
+</div>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Mã HĐ</th>
+            <th>Lịch hẹn</th>
+            <th>Chủ nuôi</th>
+            <th>Ngày lập</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Thanh toán</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>#@item.MaHd</td>
+                <td>@item.MaLh</td>
+                <td>@item.MaCnNavigation?.HoTen</td>
+                <td>@item.NgayLap.ToString("dd/MM/yyyy")</td>
+                <td>@item.TongTien.ToString("N0") VNĐ</td>
+                <td>
+                    @if (item.TrangThaiTt == "DaThanhToan")
+                    {
+                        <span class="badge bg-success">Đã thanh toán</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                    }
+                </td>
+                <td>
+                    @if (item.TrangThaiTt != "DaThanhToan")
+                    {
+                        <form asp-action="ThanhToan" method="post" class="d-flex gap-2 align-items-center">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.MaHd" />
+                            <select name="phuongThuc" class="form-select form-select-sm w-auto">
+                                <option value="TienMat">Tiền mặt</option>
+                                <option value="ChuyenKhoan">Chuyển khoản</option>
+                            </select>
+                            <button class="btn btn-sm btn-success" type="submit">Thanh toán</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-muted">@item.PhuongThucTt</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
