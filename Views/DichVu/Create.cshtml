@@ -1,0 +1,47 @@
+@model PetCareManagement.Models.DichVu
+@{
+    ViewData["Title"] = "Thêm dịch vụ";
+}
+
+<h3 class="mb-3">➕ Thêm dịch vụ</h3>
+
+<form asp-action="Create" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <div class="col-md-6">
+        <label asp-for="TenDichVu" class="form-label">Tên dịch vụ</label>
+        <input asp-for="TenDichVu" class="form-control" />
+        <span asp-validation-for="TenDichVu" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="DanhMuc" class="form-label">Danh mục</label>
+        <input asp-for="DanhMuc" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="GiaCho" class="form-label">Giá chó</label>
+        <input asp-for="GiaCho" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="GiaMeo" class="form-label">Giá mèo</label>
+        <input asp-for="GiaMeo" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="GiaKhac" class="form-label">Giá khác</label>
+        <input asp-for="GiaKhac" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="MoTa" class="form-label">Mô tả</label>
+        <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="col-12 form-check">
+        <input asp-for="TrangThai" class="form-check-input" />
+        <label asp-for="TrangThai" class="form-check-label">Đang hoạt động</label>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Lưu</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Huỷ</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
