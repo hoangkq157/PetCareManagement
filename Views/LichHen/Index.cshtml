@@ -1,0 +1,129 @@
+@model IEnumerable<PetCareManagement.Models.LichHen>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Danh Sách Lịch Hẹn</h1>
+
+<p>
+    <a asp-action="Create">Tạo Lịch Hẹn Mới</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Ngày Hẹn
+            </th>
+            <th>
+                Giờ Hẹn
+            </th>
+            <th>
+                Trạng Thái
+            </th>
+            <th>
+                Ghi Chú
+            </th>
+            <th>
+                Ngày Tạo
+            </th>
+            <th>
+                Tên Nhân Viên
+            </th>
+            <th>
+                Tên Thú Cưng
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.NgayHen)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GioHen)
+            </td>
+            <td>
+                @if (item.TrangThai == "HoanThanh")
+                {
+                    <span class="badge bg-success">✓ Hoàn thành</span>
+                }
+                else if (item.TrangThai == "XacNhan")
+                {
+                    <span class="badge bg-primary">✓ Đã xác nhận</span>
+                }
+                else if (item.TrangThai == "Huy")
+                {
+                    <span class="badge bg-danger">✕ Đã huỷ</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark">⏳ Chờ duyệt</span>
+                }
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GhiChu)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NgayTao)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaNvNavigation.HoTen)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaTcNavigation.TenThuCung)
+            </td>
+            <td style="white-space: nowrap;">
+
+    @if (item.TrangThai == "ChoDuyet")
+    {
+        <form asp-action="DoiTrangThai"
+              method="post"
+              style="display:inline">
+            <input type="hidden" name="id" value="@item.MaLh" />
+            <input type="hidden" name="trangThai" value="XacNhan" />
+            <button type="submit"
+                    class="btn btn-success btn-sm">
+                Xác nhận
+            </button>
+        </form>
+
+        <form asp-action="DoiTrangThai"
+              method="post"
+              style="display:inline">
+            <input type="hidden" name="id" value="@item.MaLh" />
+            <input type="hidden" name="trangThai" value="Huy" />
+            <button type="submit"
+                    class="btn btn-danger btn-sm">
+                Huỷ
+            </button>
+        </form>
+    }
+    else
+    {
+        <a asp-action="Edit"
+           asp-route-id="@item.MaLh"
+           class="btn btn-warning btn-sm">
+            Sửa
+        </a>
+
+        <a asp-action="Details"
+           asp-route-id="@item.MaLh"
+           class="btn btn-info btn-sm">
+            Chi tiết
+        </a>
+
+        <a asp-action="Delete"
+           asp-route-id="@item.MaLh"
+           class="btn btn-secondary btn-sm">
+            Xóa
+        </a>
+    }
+
+</td>
+        </tr>
+}
+    </tbody>
+</table>

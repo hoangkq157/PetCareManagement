@@ -32,7 +32,6 @@ public partial class PetCareDbContext : DbContext
 
     public virtual DbSet<TiemPhong> TiemPhongs { get; set; }
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ChuNuoi>(entity =>

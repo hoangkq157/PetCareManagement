@@ -8,15 +8,7 @@ builder.Services.AddDbContext<PetCareDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromHours(8);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
- 
-builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<PetCareDbContext>(options =>options.UseSqlServer(builder.Configuration.GetConnectionString("PetCareConnection")));
 
 var app = builder.Build();
 
