@@ -18,7 +18,9 @@ public class ThuCungController : Controller
     private bool DaDangNhap() =>
         HttpContext.Session.GetString("NhanVienId") != null;
 
-    // READ
+    // ──────────────────────────────────────────────────────────────
+    // INDEX – Danh sách thú cưng (có tìm kiếm)
+    // ──────────────────────────────────────────────────────────────
     public async Task<IActionResult> Index(string? search)
     {
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
@@ -33,10 +35,29 @@ public class ThuCungController : Controller
                 (t.MaCnNavigation != null && t.MaCnNavigation.HoTen.Contains(search)));
 
         ViewBag.Search = search;
-        return View(await query.ToListAsync());
+        return View(await query.OrderBy(t => t.TenThuCung).ToListAsync());
     }
 
-    // CREATE GET
+    // ──────────────────────────────────────────────────────────────
+    // DETAILS – Xem hồ sơ chi tiết (kèm lịch hẹn & tiêm phòng)
+    // ──────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Details(int id)
+    {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
+        var tc = await _context.ThuCungs
+            .Include(t => t.MaCnNavigation)
+            .Include(t => t.LichHens)
+            .Include(t => t.TiemPhongs)
+            .FirstOrDefaultAsync(t => t.MaTc == id);
+
+        if (tc == null) return NotFound();
+        return View(tc);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // CREATE – GET
+    // ──────────────────────────────────────────────────────────────
     public IActionResult Create()
     {
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
@@ -44,7 +65,7 @@ public class ThuCungController : Controller
         return View();
     }
 
-    // CREATE POST
+    // CREATE – POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ThuCung thuCung)
@@ -52,6 +73,9 @@ public class ThuCungController : Controller
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
 
         ModelState.Remove("MaCnNavigation");
+        ModelState.Remove("LichHens");
+        ModelState.Remove("TiemPhongs");
+
         if (!ModelState.IsValid)
         {
             ViewBag.ChuNuois = _context.ChuNuois.OrderBy(c => c.HoTen).ToList();
@@ -64,7 +88,9 @@ public class ThuCungController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // EDIT GET
+    // ──────────────────────────────────────────────────────────────
+    // EDIT – GET
+    // ──────────────────────────────────────────────────────────────
     public async Task<IActionResult> Edit(int id)
     {
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
@@ -76,7 +102,7 @@ public class ThuCungController : Controller
         return View(tc);
     }
 
-    // EDIT POST
+    // EDIT – POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, ThuCung thuCung)
@@ -85,6 +111,9 @@ public class ThuCungController : Controller
         if (id != thuCung.MaTc) return BadRequest();
 
         ModelState.Remove("MaCnNavigation");
+        ModelState.Remove("LichHens");
+        ModelState.Remove("TiemPhongs");
+
         if (!ModelState.IsValid)
         {
             ViewBag.ChuNuois = _context.ChuNuois.OrderBy(c => c.HoTen).ToList();
@@ -106,10 +135,27 @@ public class ThuCungController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // DELETE POST
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    // ──────────────────────────────────────────────────────────────
+    // DELETE – GET (trang xác nhận)
+    // ──────────────────────────────────────────────────────────────
     public async Task<IActionResult> Delete(int id)
+    {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
+        var tc = await _context.ThuCungs
+            .Include(t => t.MaCnNavigation)
+            .Include(t => t.LichHens)
+            .Include(t => t.TiemPhongs)
+            .FirstOrDefaultAsync(t => t.MaTc == id);
+
+        if (tc == null) return NotFound();
+        return View(tc);
+    }
+
+    // DELETE – POST (thực hiện xoá)
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
     {
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
 

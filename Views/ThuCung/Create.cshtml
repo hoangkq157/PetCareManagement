@@ -1,0 +1,114 @@
+@model ThuCung
+
+@{
+    ViewData["Title"] = "Thêm thú cưng";
+    var chuNuois = ViewBag.ChuNuois as List<ChuNuoi> ?? new List<ChuNuoi>();
+}
+
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Quay lại</a>
+    <h5 class="mb-0">➕ Thêm thú cưng mới</h5>
+</div>
+
+<div class="card shadow-sm" style="max-width:680px">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="row g-3">
+
+                @* Tên thú cưng *@
+                <div class="col-sm-6">
+                    <label asp-for="TenThuCung" class="form-label fw-semibold">
+                        Tên thú cưng <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="TenThuCung" class="form-control"
+                           placeholder="VD: Bông, Mimi, Lucky…" />
+                    <span asp-validation-for="TenThuCung" class="text-danger small"></span>
+                </div>
+
+                @* Chủ nuôi *@
+                <div class="col-sm-6">
+                    <label asp-for="MaCn" class="form-label fw-semibold">
+                        Chủ nuôi <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="MaCn" class="form-select">
+                        <option value="">— Chọn chủ nuôi —</option>
+                        @foreach (var cn in chuNuois)
+                        {
+                            <option value="@cn.MaCn">@cn.HoTen (@cn.SoDienThoai)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="MaCn" class="text-danger small"></span>
+                </div>
+
+                @* Loài *@
+                <div class="col-sm-4">
+                    <label asp-for="Loai" class="form-label fw-semibold">
+                        Loài <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="Loai" class="form-select">
+                        <option value="">— Chọn —</option>
+                        <option value="Chó">🐶 Chó</option>
+                        <option value="Mèo">🐱 Mèo</option>
+                        <option value="Khác">🐾 Khác</option>
+                    </select>
+                    <span asp-validation-for="Loai" class="text-danger small"></span>
+                </div>
+
+                @* Giống *@
+                <div class="col-sm-4">
+                    <label asp-for="Giong" class="form-label fw-semibold">Giống</label>
+                    <input asp-for="Giong" class="form-control"
+                           placeholder="VD: Poodle, Anh lông ngắn…" />
+                    <span asp-validation-for="Giong" class="text-danger small"></span>
+                </div>
+
+                @* Màu lông *@
+                <div class="col-sm-4">
+                    <label asp-for="MauLong" class="form-label fw-semibold">Màu lông</label>
+                    <input asp-for="MauLong" class="form-control"
+                           placeholder="VD: Trắng, Vàng, Nâu sọc…" />
+                    <span asp-validation-for="MauLong" class="text-danger small"></span>
+                </div>
+
+                @* Ngày sinh *@
+                <div class="col-sm-4">
+                    <label asp-for="NgaySinh" class="form-label fw-semibold">Ngày sinh</label>
+                    <input asp-for="NgaySinh" type="date" class="form-control"
+                           max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="NgaySinh" class="text-danger small"></span>
+                </div>
+
+                @* Cân nặng *@
+                <div class="col-sm-4">
+                    <label asp-for="CanNang" class="form-label fw-semibold">Cân nặng (kg)</label>
+                    <input asp-for="CanNang" type="number" step="0.01" min="0" max="200"
+                           class="form-control" placeholder="VD: 3.5" />
+                    <span asp-validation-for="CanNang" class="text-danger small"></span>
+                </div>
+
+                @* Ghi chú *@
+                <div class="col-12">
+                    <label asp-for="GhiChu" class="form-label fw-semibold">Ghi chú sức khoẻ</label>
+                    <textarea asp-for="GhiChu" class="form-control" rows="3"
+                              placeholder="Dị ứng, bệnh nền, lưu ý đặc biệt…"></textarea>
+                    <span asp-validation-for="GhiChu" class="text-danger small"></span>
+                </div>
+
+            </div>
+
+            <hr class="my-3" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    ✅ Lưu thú cưng
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Huỷ</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
