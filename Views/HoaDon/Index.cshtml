@@ -26,6 +26,7 @@
     <tbody>
         @foreach (var item in Model)
         {
+            var daThanhToan = item.TrangThaiTt == "DaThanhToan" || (item.SoTienKhachTra ?? 0) >= item.TongTien;
             <tr>
                 <td>#@item.MaHd</td>
                 <td>@item.MaLh</td>
@@ -33,9 +34,13 @@
                 <td>@item.NgayLap.ToString("dd/MM/yyyy")</td>
                 <td>@item.TongTien.ToString("N0") VNĐ</td>
                 <td>
-                    @if (item.TrangThaiTt == "DaThanhToan")
+                    @if (daThanhToan)
                     {
                         <span class="badge bg-success">Đã thanh toán</span>
+                    }
+                    else if (item.TrangThaiTt == "ThanhToanMotPhan")
+                    {
+                        <span class="badge bg-info text-dark">Thanh toán một phần</span>
                     }
                     else
                     {
@@ -43,21 +48,61 @@
                     }
                 </td>
                 <td>
-                    @if (item.TrangThaiTt != "DaThanhToan")
+                    @if (daThanhToan)
                     {
-                        <form asp-action="ThanhToan" method="post" class="d-flex gap-2 align-items-center">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@item.MaHd" />
-                            <select name="phuongThuc" class="form-select form-select-sm w-auto">
-                                <option value="TienMat">Tiền mặt</option>
-                                <option value="ChuyenKhoan">Chuyển khoản</option>
-                            </select>
-                            <button class="btn btn-sm btn-success" type="submit">Thanh toán</button>
-                        </form>
+                        <div class="small text-muted">Phương thức: @(item.PhuongThucTt ?? "—")</div>
+                        <div class="small text-muted">Khách trả: @((item.SoTienKhachTra ?? 0).ToString("N0")) VNĐ</div>
+                        @if ((item.TienThua ?? 0) > 0)
+                        {
+                            <div class="small text-success">Tiền thừa: @((item.TienThua ?? 0).ToString("N0")) VNĐ</div>
+                        }
                     }
                     else
                     {
-                        <span class="text-muted">@item.PhuongThucTt</span>
+                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalThanhToan-@item.MaHd">Thanh toán</button>
+                        <div class="small text-muted mt-1">Còn lại: @((item.TongTien - (item.SoTienKhachTra ?? 0)).ToString("N0")) VNĐ</div>
+
+                        <div class="modal fade" id="modalThanhToan-@item.MaHd" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <form asp-action="ThanhToan" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.MaHd" />
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Thanh toán hóa đơn #@item.MaHd</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Chủ nuôi</label>
+                                                    <input class="form-control" value="@item.MaCnNavigation?.HoTen" disabled />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Tổng tiền</label>
+                                                    <input class="form-control" value="@item.TongTien.ToString("N0") VNĐ" disabled />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Số tiền khách trả</label>
+                                                    <input type="number" min="0" step="1000" name="soTienKhachTra" class="form-control" required />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Phương thức thanh toán</label>
+                                                    <select name="phuongThuc" class="form-select">
+                                                        <option value="TienMat">Tiền mặt</option>
+                                                        <option value="ChuyenKhoan">Chuyển khoản</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                            <button type="submit" class="btn btn-success">Xác nhận thanh toán</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     }
                 </td>
             </tr>

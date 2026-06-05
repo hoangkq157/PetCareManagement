@@ -120,6 +120,12 @@
            class="btn btn-secondary btn-sm">
             Xóa
         </a>
+
+        <form asp-controller="HoaDon" asp-action="TaoHoaDon" method="post" style="display:inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="maLh" value="@item.MaLh" />
+            <button type="submit" class="btn btn-success btn-sm">Tạo HĐ</button>
+        </form>
     }
 
 </td>

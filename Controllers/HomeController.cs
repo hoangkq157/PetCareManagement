@@ -34,12 +34,14 @@ public class HomeController : Controller
                           && v.NgayTiemTiep >= DateOnly.FromDateTime(today_dt)
                           && v.NgayTiemTiep <= DateOnly.FromDateTime(warn30));
         ViewBag.MonthRevenue = await _context.HoaDons
-            .Where(h => h.NgayLap.Month == today.Month && h.NgayLap.Year == today.Year)
+            .Where(h => h.NgayLap.Month == today.Month && h.NgayLap.Year == today.Year
+                        && (h.TrangThaiTt == "DaThanhToan" || (h.SoTienKhachTra ?? 0) >= h.TongTien))
             .SumAsync(h => (decimal?)h.TongTien) ?? 0;
 
         // Dữ liệu biểu đồ
         var revenueData = await _context.HoaDons
-            .Where(h => h.NgayLap.Year == today.Year)
+            .Where(h => h.NgayLap.Year == today.Year
+                        && (h.TrangThaiTt == "DaThanhToan" || (h.SoTienKhachTra ?? 0) >= h.TongTien))
             .GroupBy(h => h.NgayLap.Month)
             .Select(g => new { Month = g.Key, Revenue = g.Sum(h => h.TongTien) })
             .ToListAsync();

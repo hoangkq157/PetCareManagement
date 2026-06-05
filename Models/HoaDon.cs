@@ -32,6 +32,14 @@ public partial class HoaDon
     [StringLength(30)]
     public string? PhuongThucTt { get; set; }
 
+    [Column(TypeName = "decimal(12, 0)")]
+    public decimal? SoTienKhachTra { get; set; }
+
+    [Column(TypeName = "decimal(12, 0)")]
+    public decimal? TienThua { get; set; }
+
+    public DateTime? NgayThanhToan { get; set; }
+
     [StringLength(200)]
     public string? GhiChu { get; set; }
 

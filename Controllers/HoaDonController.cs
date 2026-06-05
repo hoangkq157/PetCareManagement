@@ -64,7 +64,10 @@ public class HoaDonController : Controller
             NgayLap = DateOnly.FromDateTime(DateTime.Today),
             TongTien = tongTien,
             TrangThaiTt = "ChuaThanhToan",
-            PhuongThucTt = "TienMat"
+            PhuongThucTt = "TienMat",
+            SoTienKhachTra = 0,
+            TienThua = 0,
+            NgayThanhToan = null
         };
 
         _context.HoaDons.Add(hoaDon);
@@ -76,19 +79,34 @@ public class HoaDonController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ThanhToan(int id, string phuongThuc)
+    public async Task<IActionResult> ThanhToan(int id, string phuongThuc, decimal soTienKhachTra)
     {
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
+        if (soTienKhachTra <= 0)
+        {
+            TempData["Error"] = "Vui lòng nhập số tiền khách trả hợp lệ.";
+            return RedirectToAction(nameof(Index));
+        }
 
         var hoaDon = await _context.HoaDons.FindAsync(id);
         if (hoaDon == null) return NotFound();
 
-        hoaDon.TrangThaiTt = "DaThanhToan";
+        var tienThua = soTienKhachTra - hoaDon.TongTien;
+        var daThanhToan = soTienKhachTra >= hoaDon.TongTien;
+
+        hoaDon.TrangThaiTt = daThanhToan ? "DaThanhToan" : "ThanhToanMotPhan";
         hoaDon.PhuongThucTt = phuongThuc;
+        hoaDon.SoTienKhachTra = soTienKhachTra;
+        hoaDon.TienThua = tienThua > 0 ? tienThua : 0;
+        hoaDon.NgayThanhToan = DateTime.Now;
+
         _context.Update(hoaDon);
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = $"Đã đánh dấu hoá đơn #{id} là đã thanh toán.";
+        TempData["Success"] = daThanhToan
+            ? $"Đã thanh toán hoá đơn #{id} với số tiền {soTienKhachTra:N0} VNĐ."
+            : $"Đã ghi nhận thanh toán một phần cho hoá đơn #{id}.";
         return RedirectToAction(nameof(Index));
     }
 }

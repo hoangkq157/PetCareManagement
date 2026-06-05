@@ -31,7 +31,7 @@ public class BaoCaoController : Controller
 
         // Lấy tổng doanh thu từ các hoá đơn đã thanh toán trong 6 tháng qua.
         var data = await _context.HoaDons
-            .Where(h => h.NgayLap >= from && h.TrangThaiTt == "DaThanhToan")
+            .Where(h => h.NgayLap >= from && (h.TrangThaiTt == "DaThanhToan" || (h.SoTienKhachTra ?? 0) >= h.TongTien))
             .GroupBy(h => new { h.NgayLap.Year, h.NgayLap.Month })
             .Select(g => new
             {
@@ -47,7 +47,7 @@ public class BaoCaoController : Controller
 
         var thangNay = DateOnly.FromDateTime(DateTime.Today);
         ViewBag.TongThangNay = await _context.HoaDons
-            .Where(h => h.NgayLap.Month == thangNay.Month && h.NgayLap.Year == thangNay.Year && h.TrangThaiTt == "DaThanhToan")
+            .Where(h => h.NgayLap.Month == thangNay.Month && h.NgayLap.Year == thangNay.Year && (h.TrangThaiTt == "DaThanhToan" || (h.SoTienKhachTra ?? 0) >= h.TongTien))
             .SumAsync(h => (decimal?)h.TongTien) ?? 0;
 
         return View();

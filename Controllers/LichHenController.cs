@@ -56,6 +56,8 @@ namespace PetCareManagement.Controllers
             var lichHen = await _context.LichHens
                 .Include(l => l.MaNvNavigation)
                 .Include(l => l.MaTcNavigation)
+                .Include(l => l.LichHenDichVus)
+                    .ThenInclude(ld => ld.MaDvNavigation)
                 .FirstOrDefaultAsync(m => m.MaLh == id);
             if (lichHen == null)
             {
