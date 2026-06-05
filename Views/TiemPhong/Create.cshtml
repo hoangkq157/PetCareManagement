@@ -1,0 +1,119 @@
+@model PetCareManagement.Models.TiemPhong
+
+@{
+    ViewData["Title"] = "Thêm tiêm phòng";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">💉 Thêm lịch tiêm phòng</h4>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="Create" method="post">
+
+            <div asp-validation-summary="All"
+                 class="alert alert-danger">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Thú cưng</label>
+
+                <select asp-for="MaTc"
+                        class="form-select">
+
+                    <option value="">-- Chọn thú cưng --</option>
+
+                    @foreach (var tc in ViewBag.DsThuCung)
+                    {
+                        <option value="@tc.MaTc">
+                            @tc.TenThuCung
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenVaccine"
+                       class="form-label">
+                </label>
+
+                <input asp-for="TenVaccine"
+                       class="form-control" />
+
+                <span asp-validation-for="TenVaccine"
+                      class="text-danger">
+                </span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="NgayTiem"
+                       class="form-label">
+                </label>
+
+                <input asp-for="NgayTiem"
+                       type="date"
+                       class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ChuKyNgay"
+                       class="form-label">
+                </label>
+
+                <input asp-for="ChuKyNgay"
+                       type="number"
+                       class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LieuLuong"
+                       class="form-label">
+                </label>
+
+                <input asp-for="LieuLuong"
+                       class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BacSiThucHien"
+                       class="form-label">
+                </label>
+
+                <input asp-for="BacSiThucHien"
+                       class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GhiChu"
+                       class="form-label">
+                </label>
+
+                <textarea asp-for="GhiChu"
+                          class="form-control"
+                          rows="3">
+                </textarea>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-success">
+                💾 Lưu
+            </button>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                ↩ Quay lại
+            </a>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
