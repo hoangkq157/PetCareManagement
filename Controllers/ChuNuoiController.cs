@@ -21,28 +21,28 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
         }
         // --- KHU VỰC DÀNH RIÊNG CHO GIAO DIỆN KHÁCH HÀNG ---
         // =======================================================      // 1. Khách xem danh sách dịch vụ
-    public IActionResult DanhSachDichVu(string search, string danhMuc)
-    {
-        // Chỉ lấy những dịch vụ đang mở
-        var query = _context.DichVus.Where(dv => dv.TrangThai == true);
-
-        // 1. Lọc theo Danh mục (Khi click từ trang chủ vào)
-        if (!string.IsNullOrEmpty(danhMuc))
+        public IActionResult DanhSachDichVu(string search, string danhMuc)
         {
-            query = query.Where(dv => dv.DanhMuc.Contains(danhMuc));
-            ViewBag.DanhMuc = danhMuc; // Truyền ra View để đổi Tiêu đề cho đẹp
-        }
+            // Chỉ lấy những dịch vụ đang mở
+            var query = _context.DichVus.Where(dv => dv.TrangThai == true);
 
-        // 2. Lọc theo thanh tìm kiếm (Nếu khách tự gõ chữ tìm kiếm)
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(dv => dv.TenDichVu.Contains(search) || dv.DanhMuc.Contains(search));
-            ViewBag.Search = search;
-        }
+            // 1. Lọc theo Danh mục (Khi click từ trang chủ vào)
+            if (!string.IsNullOrEmpty(danhMuc))
+            {
+                query = query.Where(dv => dv.DanhMuc.Contains(danhMuc));
+                ViewBag.DanhMuc = danhMuc; // Truyền ra View để đổi Tiêu đề cho đẹp
+            }
 
-        var danhSachDichVu = query.ToList();
-        return View(danhSachDichVu);
-    }
+            // 2. Lọc theo thanh tìm kiếm (Nếu khách tự gõ chữ tìm kiếm)
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(dv => dv.TenDichVu.Contains(search) || dv.DanhMuc.Contains(search));
+                ViewBag.Search = search;
+            }
+
+            var danhSachDichVu = query.ToList();
+            return View(danhSachDichVu);
+        }
 
         // 2. Khách xem danh sách tiêm phòng
         // GET: ChuNuoi/DanhSachTiemPhong
@@ -72,7 +72,7 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
         public IActionResult DatLich()
         {
             // Truyền danh sách dịch vụ ra View để khách chọn trong thẻ <select>
-            ViewBag.DichVus = _context.DichVus.ToList(); 
+            ViewBag.DichVus = _context.DichVus.ToList();
             return View();
         }
 
@@ -81,7 +81,12 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
         public IActionResult LichSuDatLich()
         {
             // Tạm thời giả lập Mã chủ nuôi đang đăng nhập là 1 giống như bên hàm DatLich
-            int mockMaCN = 1;
+            string chuNuoiIdStr = HttpContext.Session.GetString("ChuNuoiId");
+            if (string.IsNullOrEmpty(chuNuoiIdStr) || !int.TryParse(chuNuoiIdStr, out int maChuNuoi))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để xem lịch sử đặt lịch.";
+                return RedirectToAction("Login", "Auth");
+            }
 
             // Lấy danh sách lịch hẹn thuộc về Thú cưng của Chủ nuôi này
             var danhSachLichHen = _context.LichHens
@@ -89,7 +94,7 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
                 .Include(l => l.MaNvNavigation)  // Nạp thông tin Nhân viên phụ trách
                 .Include(l => l.LichHenDichVus)  // Nạp bảng trung gian Chi tiết dịch vụ
                     .ThenInclude(ld => ld.MaDvNavigation) // Nạp tên Dịch vụ tương ứng
-                .Where(l => l.MaTcNavigation.MaCn == mockMaCN) // Lọc lịch hẹn của chủ nuôi này
+                .Where(l => l.MaTcNavigation.MaCn == maChuNuoi) // Lọc lịch hẹn của chủ nuôi này
                 .OrderByDescending(l => l.NgayTao) // Lịch mới đặt xếp lên đầu
                 .ToList();
 
@@ -131,8 +136,8 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
                 // BƯỚC 2: KIỂM TRA THÚ CƯNG ĐÃ TỒN TẠI HAY CHƯA
                 // Tìm con thú cưng của Chủ nuôi này, có cùng Tên và cùng Loại (Chó/Mèo)
                 var existingPet = await _context.ThuCungs
-                    .FirstOrDefaultAsync(t => t.MaCn == maChuNuoi 
-                                           && t.TenThuCung.ToLower() == tenThuCungClean.ToLower() 
+                    .FirstOrDefaultAsync(t => t.MaCn == maChuNuoi
+                                           && t.TenThuCung.ToLower() == tenThuCungClean.ToLower()
                                            && t.Loai == Loai);
 
                 int idThuCungDatLich = 0;
@@ -147,7 +152,7 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
                     if (CanNang.HasValue && existingPet.CanNang != CanNang) { existingPet.CanNang = CanNang; hasChanges = true; }
                     if (!string.IsNullOrEmpty(MauLong) && existingPet.MauLong != MauLong) { existingPet.MauLong = MauLong; hasChanges = true; }
                     if (!string.IsNullOrEmpty(Giong) && existingPet.Giong != Giong) { existingPet.Giong = Giong; hasChanges = true; }
-                    
+
                     if (hasChanges)
                     {
                         _context.ThuCungs.Update(existingPet);
@@ -167,22 +172,22 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
                         MauLong = MauLong,
                         NgaySinh = DateOnly.FromDateTime(DateTime.Now.AddYears(-1)) // Mặc định 1 tuổi
                     };
-                    
+
                     _context.ThuCungs.Add(thuCungMoi);
-                    await _context.SaveChangesAsync(); 
-                    
+                    await _context.SaveChangesAsync();
+
                     // Lấy ID của thú cưng vừa mới tạo
                     idThuCungDatLich = thuCungMoi.MaTc;
                 }
 
                 // BƯỚC 3: ĐIỀN THÔNG TIN LỊCH HẸN VÀ LIÊN KẾT VỚI THÚ CƯNG (CŨ HOẶC MỚI)
                 lichHen.MaTc = idThuCungDatLich; // Trỏ đúng ID đã lấy ở Bước 2
-                lichHen.MaNv = null;            
-                lichHen.TrangThai = "ChoDuyet";  
+                lichHen.MaNv = null;
+                lichHen.TrangThai = "ChoDuyet";
                 lichHen.NgayTao = DateTime.Now;
 
                 _context.LichHens.Add(lichHen);
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
 
                 // BƯỚC 4: LƯU CHI TIẾT DỊCH VỤ ĐÃ CHỌN
                 var dichVuDuocChon = await _context.DichVus.FindAsync(MaDv);
@@ -260,6 +265,6 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
 
             return RedirectToAction(nameof(DanhSachThuCung));
         }
-    
+
     }
 }
