@@ -36,21 +36,25 @@ public partial class PetCareDbContext : DbContext
     {
         modelBuilder.Entity<ChuNuoi>(entity =>
         {
-            entity.HasKey(e => e.MaCn).HasName("PK__ChuNuoi__27258E0EC1D71451");
+            entity.HasKey(e => e.MaCn).HasName("PK_ChuNuoi");
+
+            entity.HasIndex(e => e.SoDienThoai)
+                  .IsUnique()
+                  .HasDatabaseName("UQ_ChuNuoi_SoDT");
 
             entity.Property(e => e.NgayDangKy).HasDefaultValueSql("(CONVERT([date],getdate()))");
         });
 
         modelBuilder.Entity<DichVu>(entity =>
         {
-            entity.HasKey(e => e.MaDv).HasName("PK__DichVu__272586579879F12E");
+            entity.HasKey(e => e.MaDv).HasName("PK_DichVu");
 
             entity.Property(e => e.TrangThai).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<HoaDon>(entity =>
         {
-            entity.HasKey(e => e.MaHd).HasName("PK__HoaDon__2725A6E0D6037B33");
+            entity.HasKey(e => e.MaHd).HasName("PK_HoaDon");
 
             entity.Property(e => e.NgayLap).HasDefaultValueSql("(CONVERT([date],getdate()))");
             entity.Property(e => e.TrangThaiTt).HasDefaultValue("ChuaThanhToan");
@@ -66,7 +70,7 @@ public partial class PetCareDbContext : DbContext
 
         modelBuilder.Entity<LichHen>(entity =>
         {
-            entity.HasKey(e => e.MaLh).HasName("PK__LichHen__2725C77FE6E51A6A");
+            entity.HasKey(e => e.MaLh).HasName("PK_LichHen");
 
             entity.Property(e => e.NgayTao).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.TrangThai).HasDefaultValue("ChoDuyet");
@@ -80,7 +84,7 @@ public partial class PetCareDbContext : DbContext
 
         modelBuilder.Entity<LichHenDichVu>(entity =>
         {
-            entity.HasKey(e => e.MaLhdv).HasName("PK__LichHen___649537010EBD20EE");
+            entity.HasKey(e => e.MaLhdv).HasName("PK_LichHen_DichVu");
 
             entity.Property(e => e.SoLuong).HasDefaultValue(1);
 
@@ -93,7 +97,7 @@ public partial class PetCareDbContext : DbContext
 
         modelBuilder.Entity<NhanVien>(entity =>
         {
-            entity.HasKey(e => e.MaNv).HasName("PK__NhanVien__2725D70ACEFB3E98");
+            entity.HasKey(e => e.MaNv).HasName("PK_NhanVien");
 
             entity.Property(e => e.NgayTao).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.TrangThai).HasDefaultValue(true);
@@ -102,14 +106,14 @@ public partial class PetCareDbContext : DbContext
 
         modelBuilder.Entity<ThuCung>(entity =>
         {
-            entity.HasKey(e => e.MaTc).HasName("PK__ThuCung__27250068CBAAB644");
+            entity.HasKey(e => e.MaTc).HasName("PK_ThuCung");
 
             entity.HasOne(d => d.MaCnNavigation).WithMany(p => p.ThuCungs).HasConstraintName("FK_ThuCung_ChuNuoi");
         });
 
         modelBuilder.Entity<TiemPhong>(entity =>
         {
-            entity.HasKey(e => e.MaTp).HasName("PK__TiemPhon__2725007D6FBCD213");
+            entity.HasKey(e => e.MaTp).HasName("PK_TiemPhong");
 
             entity.Property(e => e.ChuKyNgay).HasDefaultValue(365);
 

@@ -20,6 +20,10 @@ public partial class ChuNuoi
     [Unicode(false)]
     public string SoDienThoai { get; set; } = null!;
 
+    [StringLength(255)]
+    [Unicode(false)]
+    public string? MatKhau { get; set; }
+
     [StringLength(100)]
     [Unicode(false)]
     public string? Email { get; set; }

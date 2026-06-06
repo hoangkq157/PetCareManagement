@@ -21,49 +21,77 @@ public class AuthController : Controller
     // GET /Auth/Login
     public IActionResult Login()
     {
+        // Nếu NhanVien đã đăng nhập → về trang quản lý
         if (HttpContext.Session.GetString("NhanVienId") != null)
             return RedirectToAction("Index", "Home");
+
+        // Nếu ChuNuoi đã đăng nhập → về trang Home (tạm thời)
+        if (HttpContext.Session.GetString("ChuNuoiId") != null)
+            return RedirectToAction("Index", "Home");
+
         return View();
     }
 
     // POST /Auth/Login
+    // Trường "taiKhoan": NhanVien nhập Email, ChuNuoi nhập Số điện thoại
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(string email, string matKhau)
+    public async Task<IActionResult> Login(string taiKhoan, string matKhau)
     {
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(matKhau))
+        if (string.IsNullOrWhiteSpace(taiKhoan) || string.IsNullOrWhiteSpace(matKhau))
         {
-            ViewBag.Error = "Vui lòng nhập đầy đủ Email và Mật khẩu.";
+            ViewBag.Error = "Vui lòng nhập đầy đủ tài khoản và mật khẩu.";
             return View();
         }
 
+        // ── Bước 1: Thử đăng nhập NhanVien (bằng Email) ──────────────────
         var nv = await _context.NhanViens
-            .FirstOrDefaultAsync(n => n.Email == email
+            .FirstOrDefaultAsync(n => n.Email == taiKhoan
                                    && n.MatKhau == matKhau
                                    && n.TrangThai == true);
 
-        if (nv == null)
+        if (nv != null)
         {
-            ViewBag.Error = "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khoá.";
-            return View();
+            HttpContext.Session.SetString("NhanVienId",   nv.MaNv.ToString());
+            HttpContext.Session.SetString("NhanVienName", nv.HoTen);
+            HttpContext.Session.SetString("NhanVienRole", nv.VaiTro);
+            // Nhân viên → trang quản lý
+            return RedirectToAction("Index", "Home");
         }
 
-        HttpContext.Session.SetString("NhanVienId",   nv.MaNv.ToString());
-        HttpContext.Session.SetString("NhanVienName", nv.HoTen);
-        HttpContext.Session.SetString("NhanVienRole", nv.VaiTro);
+        // ── Bước 2: Thử đăng nhập ChuNuoi (bằng Số điện thoại) ──────────
+        var cn = await _context.ChuNuois
+            .FirstOrDefaultAsync(c => c.SoDienThoai == taiKhoan
+                                   && c.MatKhau == matKhau);
 
-        return RedirectToAction("Index", "Home");
+        if (cn != null)
+        {
+            HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
+            HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
+            // Chủ nuôi → tạm thời dùng trang Home, sau đổi sang "ChuNuoiPortal"
+            return RedirectToAction("Index", "Home");
+        }
+
+        // ── Cả 2 đều thất bại ─────────────────────────────────────────────
+        ViewBag.Error = "Tài khoản / mật khẩu không đúng, hoặc tài khoản đã bị khoá.";
+        return View();
     }
 
     // ─────────────────────────────────────────────
-    // ĐĂNG KÝ
+    // ĐĂNG KÝ (chỉ dành cho Chủ nuôi)
     // ─────────────────────────────────────────────
 
     // GET /Auth/Register
     public IActionResult Register()
     {
+        // Nếu ChuNuoi đã đăng nhập → về Home (tạm thời)
+        if (HttpContext.Session.GetString("ChuNuoiId") != null)
+            return RedirectToAction("Index", "Home");
+
+        // Nếu NhanVien đã đăng nhập → về trang quản lý
         if (HttpContext.Session.GetString("NhanVienId") != null)
             return RedirectToAction("Index", "Home");
+
         return View();
     }
 
@@ -72,66 +100,53 @@ public class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(
         string hoTen,
-        string email,
+        string soDienThoai,
         string matKhau,
         string xacNhanMatKhau,
-        string? soDienThoai)
+        string? email,
+        string? diaChi)
     {
-        // Giữ lại giá trị đã nhập khi có lỗi
-        void GiuLai() {
-            ViewBag.HoTen       = hoTen;
-            ViewBag.Email       = email;
-            ViewBag.SoDienThoai = soDienThoai;
+        void GiuLai()
+        {
+            ViewBag.HoTen        = hoTen;
+            ViewBag.SoDienThoai  = soDienThoai;
+            ViewBag.Email        = email;
+            ViewBag.DiaChi       = diaChi;
         }
 
         if (string.IsNullOrWhiteSpace(hoTen) ||
-            string.IsNullOrWhiteSpace(email)  ||
+            string.IsNullOrWhiteSpace(soDienThoai) ||
             string.IsNullOrWhiteSpace(matKhau))
-        {
-            ViewBag.Error = "Vui lòng điền đầy đủ các trường bắt buộc.";
-            GiuLai(); return View();
-        }
+        { ViewBag.Error = "Vui lòng điền đầy đủ các trường bắt buộc."; GiuLai(); return View(); }
 
         if (matKhau.Length < 6)
-        {
-            ViewBag.Error = "Mật khẩu phải có ít nhất 6 ký tự.";
-            GiuLai(); return View();
-        }
+        { ViewBag.Error = "Mật khẩu phải có ít nhất 6 ký tự."; GiuLai(); return View(); }
 
         if (matKhau != xacNhanMatKhau)
-        {
-            ViewBag.Error = "Mật khẩu xác nhận không khớp.";
-            GiuLai(); return View();
-        }
+        { ViewBag.Error = "Mật khẩu xác nhận không khớp."; GiuLai(); return View(); }
 
-        // Kiểm tra email trùng
-        if (await _context.NhanViens.AnyAsync(n => n.Email == email))
-        {
-            ViewBag.Error = "Email này đã được sử dụng. Vui lòng chọn email khác.";
-            GiuLai(); return View();
-        }
+        if (await _context.ChuNuois.AnyAsync(c => c.SoDienThoai == soDienThoai))
+        { ViewBag.Error = "Số điện thoại này đã được đăng ký."; GiuLai(); return View(); }
 
-        // Lưu vào database
-        var nv = new NhanVien
+        var cn = new ChuNuoi
         {
-            HoTen       = hoTen.Trim(),
-            Email       = email.Trim().ToLower(),
-            MatKhau     = matKhau,
-            VaiTro      = "NhanVien",
-            SoDienThoai = soDienThoai?.Trim(),
-            NgayTao     = DateTime.Now,
-            TrangThai   = true
+            HoTen        = hoTen.Trim(),
+            SoDienThoai  = soDienThoai.Trim(),
+            MatKhau      = matKhau,
+            Email        = email?.Trim().ToLower(),
+            DiaChi       = diaChi?.Trim(),
+            NgayDangKy   = DateOnly.FromDateTime(DateTime.Today)
         };
 
-        _context.NhanViens.Add(nv);
+        _context.ChuNuois.Add(cn);
         await _context.SaveChangesAsync();
 
         // Đăng nhập luôn sau khi đăng ký
-        HttpContext.Session.SetString("NhanVienId",   nv.MaNv.ToString());
-        HttpContext.Session.SetString("NhanVienName", nv.HoTen);
-        HttpContext.Session.SetString("NhanVienRole", nv.VaiTro);
+        HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
+        HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
 
-        TempData["Success"] = $"Chào mừng {nv.HoTen} đã tham gia PetCare!";
+        TempData["Success"] = $"Chào mừng {cn.HoTen}! Hãy thêm thú cưng của bạn.";
+        // Tạm thời điều hướng sang Home, sau đổi thành "ChuNuoiPortal" khi có giao diện
         return RedirectToAction("Index", "Home");
     }
 

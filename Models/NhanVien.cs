@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace PetCareManagement.Models;
 
 [Table("NhanVien")]
-[Index("Email", Name = "UQ__NhanVien__A9D10534BB466FC1", IsUnique = true)]
+[Index("Email", Name = "UQ_NhanVien_Email", IsUnique = true)]
 public partial class NhanVien
 {
     [Key]
