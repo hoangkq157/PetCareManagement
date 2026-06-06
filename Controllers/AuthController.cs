@@ -27,7 +27,7 @@ public class AuthController : Controller
 
         // Nếu ChuNuoi đã đăng nhập → về trang Home (tạm thời)
         if (HttpContext.Session.GetString("ChuNuoiId") != null)
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "ChuNuoi");
 
         return View();
     }
@@ -69,7 +69,7 @@ public class AuthController : Controller
             HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
             HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
             // Chủ nuôi → tạm thời dùng trang Home, sau đổi sang "ChuNuoiPortal"
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "ChuNuoi");
         }
 
         // ── Cả 2 đều thất bại ─────────────────────────────────────────────
@@ -147,7 +147,7 @@ public class AuthController : Controller
 
         TempData["Success"] = $"Chào mừng {cn.HoTen}! Hãy thêm thú cưng của bạn.";
         // Tạm thời điều hướng sang Home, sau đổi thành "ChuNuoiPortal" khi có giao diện
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Index", "ChuNuoi");
     }
 
     // ─────────────────────────────────────────────
