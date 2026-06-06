@@ -5,8 +5,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<PetCareDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("PetCareConnection")));
-builder.Services.AddSession();
+
 // Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<PetCareDbContext>(options =>options.UseSqlServer(builder.Configuration.GetConnectionString("PetCareConnection")));
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+ 
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

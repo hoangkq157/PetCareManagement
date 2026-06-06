@@ -1,0 +1,126 @@
+@model IEnumerable<PetCareManagement.Models.TiemPhong>
+
+@{
+    ViewData["Title"] = "Sổ tiêm phòng của thú cưng";
+    // Lấy ngày hiện tại dưới dạng DateOnly để so sánh thời hạn tiêm nhắc lại
+    var today = DateOnly.FromDateTime(DateTime.Now);
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1">💉 Sổ Tiêm Chủng Toàn Diện</h2>
+            <p class="text-muted mb-0">Theo dõi các mũi vắc-xin đã tiêm và lịch hẹn tiêm nhắc lại của các bé cưng.</p>
+        </div>
+        <a href="/ChuNuoi/DatLich" class="btn btn-primary fw-bold shadow-sm px-4 py-2">
+            <i class="fas fa-calendar-plus me-2"></i> Đặt Lịch Tiêm Mới
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 border rounded bg-light shadow-sm">
+            <div class="mb-3 text-muted" style="font-size: 3rem;">🩺</div>
+            <h4 class="text-secondary">Chưa có dữ liệu tiêm phòng!</h4>
+            <p class="text-muted">Bé cưng của bạn chưa thực hiện mũi tiêm vắc-xin nào tại hệ thống của chúng tôi.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-uppercase fs-7">
+                        <tr class="text-center">
+                            <th class="ps-4 text-start">Thú Cưng</th>
+                            <th class="text-start">Tên Vắc-xin / Bệnh phòng</th>
+                            <th>Ngày Tiêm</th>
+                            <th>Chu Kỳ Nhắc</th>
+                            <th>Hạn Tiêm Tiếp Theo</th>
+                            <th>Bác Sĩ Phụ Trách</th>
+                            <th class="pe-4 text-start">Dặn Dò & Ghi Chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">🐾</span>
+                                        <span class="fw-bold text-dark">@(item.MaTcNavigation?.TenThuCung ?? "N/A")</span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="fw-bold text-primary">@item.TenVaccine</span>
+                                    @if (!string.IsNullOrEmpty(item.LieuLuong))
+                                    {
+                                        <small class="text-muted d-block">Liều lượng: @item.LieuLuong</small>
+                                    }
+                                </td>
+
+                                <td class="text-center fw-medium text-secondary">
+                                    @item.NgayTiem.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">@item.ChuKyNgay ngày</span>
+                                </td>
+
+                                <td class="text-center">
+                                    @if (item.NgayTiemTiep.HasValue)
+                                    {
+                                        var ngayHenTiếp = item.NgayTiemTiep.Value;
+                                        
+                                        if (ngayHenTiếp < today)
+                                        {
+                                            <div class="fw-bold text-danger">@ngayHenTiếp.ToString("dd/MM/yyyy")</div>
+                                            <span class="badge bg-danger-soft text-danger border border-danger rounded-pill px-2 py-1 small">
+                                                ⚠️ Quá hạn tiêm!
+                                            </span>
+                                        }
+                                        else if (ngayHenTiếp <= today.AddDays(14))
+                                        {
+                                            <div class="fw-bold text-warning">@ngayHenTiếp.ToString("dd/MM/yyyy")</div>
+                                            <span class="badge bg-warning-soft text-warning border border-warning rounded-pill px-2 py-1 small">
+                                                🔔 Sắp đến hạn tiêm
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <div class="fw-bold text-success">@ngayHenTiếp.ToString("dd/MM/yyyy")</div>
+                                            <span class="badge bg-success-soft text-success border border-success rounded-pill px-2 py-1 small">
+                                                ✓ Còn hạn bảo vệ
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted italic small">Chưa xếp lịch</span>
+                                    }
+                                </td>
+
+                                <td class="text-center text-dark fw-medium">
+                                    @(string.IsNullOrEmpty(item.BacSiThucHien) ? "Đang cập nhật" : item.BacSiThucHien)
+                                </td>
+
+                                <td class="pe-4 text-start text-muted italic small" style="max-width: 250px;">
+                                    @(string.IsNullOrEmpty(item.GhiChu) ? "Không có lưu ý đặc biệt." : item.GhiChu)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .bg-danger-soft { background-color: #f8d7da; }
+    .bg-warning-soft { background-color: #fff3cd; }
+    .bg-success-soft { background-color: #d1e7dd; }
+    .fs-7 { font-size: 0.85rem; }
+    .italic { font-style: italic; }
+</style>

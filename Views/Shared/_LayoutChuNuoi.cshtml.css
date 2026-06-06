@@ -1,0 +1,41 @@
+/* Màu nền tổng thể nhẹ nhàng cho giao diện khách hàng */
+body {
+    background-color: #fcfcfc;
+    color: #333;
+}
+
+/* Khoảng cách và bo góc nhẹ cho các mục menu (href) */
+.navbar-nav .nav-item .nav-link {
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Hiệu ứng rê chuột chung: Đổi nền xám nhạt */
+.navbar-nav .nav-item .nav-link:hover {
+    background-color: #f0f0f0;
+}
+
+/* Nút Xem Lịch Sử (Màu xanh dương) - Hover đổi nền xanh nhạt */
+.navbar-nav .nav-item .nav-link.text-primary {
+    font-weight: 600;
+}
+.navbar-nav .nav-item .nav-link.text-primary:hover {
+    background-color: #e6f0fa;
+    color: #0b5ed7 !important;
+}
+
+/* Nút Đặt Lịch Mới (Màu xanh lá) - Hover đổi nền xanh lá nhạt */
+.navbar-nav .nav-item .nav-link.text-success {
+    font-weight: 600;
+}
+.navbar-nav .nav-item .nav-link.text-success:hover {
+    background-color: #e8f5e9;
+    color: #157347 !important;
+}
+
+/* Làm gọn Menu Dropdown Đăng xuất */
+.navbar-nav .dropdown-menu {
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}

@@ -1,0 +1,110 @@
+@model PetCareManagement.Models.LichHen
+
+@{
+    ViewData["Title"] = "Đặt Lịch Chăm Sóc Thú Cưng";
+}
+
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-primary text-uppercase">🐾 Đặt Lịch Hẹn Chăm Sóc 🐾</h2>
+        <p class="text-muted">Vui lòng điền thông tin thú cưng và chọn thời gian phù hợp để chúng tôi phục vụ tốt nhất.</p>
+    </div>
+
+    <form asp-controller="ChuNuoi" asp-action="DatLich" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="card-title mb-0"><i class="fas fa-dog me-2"></i> 1. Thông Tin Thú Cưng</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên thú cưng <span class="text-danger">*</span></label>
+                            <input type="text" name="TenThuCung" class="form-control form-control-lg" placeholder="Ví dụ: Bông, Meo Meo..." required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Loại thú cưng <span class="text-danger">*</span></label>
+                            <select name="Loai" class="form-select form-control-lg" required>
+                                <option value="Chó">Chó 🐶</option>
+                                <option value="Mèo">Mèo 🐱</option>
+                                <option value="Khác">Thú cưng khác 🐹</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Giống loài</label>
+                            <input type="text" name="Giong" class="form-control" placeholder="Ví dụ: Poodle, Corgi, Anh lông ngắn..." />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cân nặng (kg)</label>
+                                <input type="number" step="0.1" name="CanNang" class="form-control" placeholder="0.0" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Màu lông</label>
+                                <input type="text" name="MauLong" class="form-control" placeholder="Ví dụ: Vàng, Trắng, Vện..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="card-title mb-0"><i class="fas fa-calendar-alt me-2"></i> 2. Thời Gian & Dịch Vụ</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn dịch vụ <span class="text-danger">*</span></label>
+                            <select name="MaDv" class="form-select form-control-lg" required>
+                                <option value="">-- Chọn dịch vụ chăm sóc --</option>
+                                @if (ViewBag.DichVus != null)
+                                {
+                                    foreach (var dv in ViewBag.DichVus)
+                                    {
+                                        <option value="@dv.MaDv">@dv.TenDichVu (Cho: @dv.GiaCho.ToString("N0")đ | Mèo: @dv.GiaMeo.ToString("N0")đ)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Ngày hẹn <span class="text-danger">*</span></label>
+                                <input asp-for="NgayHen" class="form-control form-control-lg" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                                <span asp-validation-for="NgayHen" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giờ hẹn <span class="text-danger">*</span></label>
+                                <input asp-for="GioHen" class="form-control form-control-lg" type="time" required />
+                                <span asp-validation-for="GioHen" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Ghi chú bổ sung</label>
+                            <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Yêu cầu đặc biệt hoặc tình trạng sức khỏe hiện tại của bé..."></textarea>
+                            <span asp-validation-for="GhiChu" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 pt-2">
+                            <button type="submit" class="btn btn-warning btn-lg text-white fw-bold shadow-sm">
+                                <i class="fas fa-paper-plane me-2"></i> HOÀN TẤT ĐẶT LỊCH
+                            </button>
+                            <a href="/Home/Index" class="btn btn-light btn-sm text-muted mt-2">Quay lại trang chủ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
