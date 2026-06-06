@@ -1,0 +1,109 @@
+@{
+    ViewData["Title"] = "Quên mật khẩu";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quên mật khẩu — PetCare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            width: 100%; max-width: 420px;
+            border: none; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border-radius: 16px 16px 0 0;
+            padding: 36px 32px 28px;
+            text-align: center; color: white;
+        }
+        .card-header .logo { font-size: 48px; }
+        .card-header h1 { font-size: 20px; font-weight: 700; margin: 8px 0 4px; }
+        .card-header p  { font-size: 13px; opacity: .85; margin: 0; }
+        .card-body { padding: 32px; }
+        .btn-submit {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border: none; border-radius: 8px;
+            padding: 10px; font-weight: 600;
+        }
+        .btn-submit:hover { opacity: .9; }
+        .step-indicator {
+            font-size: 12px; color: #999;
+            text-align: center; margin-bottom: 20px;
+        }
+        .step-indicator span {
+            display: inline-block; width: 28px; height: 28px;
+            line-height: 28px; border-radius: 50%;
+            background: #e0e0e0; color: #999;
+            font-weight: 700; margin: 0 4px;
+        }
+        .step-indicator span.active { background: #1e88e5; color: white; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="card-header">
+        <div class="logo">🔑</div>
+        <h1>Quên mật khẩu</h1>
+        <p>Nhập email để nhận mã OTP</p>
+    </div>
+    <div class="card-body">
+
+        <div class="step-indicator">
+            <span class="active">1</span> Nhập email
+            <span>2</span> Xác minh OTP
+            <span>3</span> Mật khẩu mới
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger py-2 mb-3">⚠️ @ViewBag.Error</div>
+        }
+        @if (ViewBag.Success != null)
+        {
+            <div class="alert alert-success py-2 mb-3">✅ @ViewBag.Success</div>
+            <div class="text-center mt-2">
+                <a asp-action="XacMinhOtp" class="btn btn-primary btn-submit w-100">
+                    Nhập mã OTP →
+                </a>
+            </div>
+        }
+        else
+        {
+            <form asp-action="QuenMatKhau" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label"
+                           style="font-size:14px;font-weight:500">Email tài khoản</label>
+                    <input type="email" name="email" class="form-control"
+                           placeholder="example@petcare.com" required autofocus />
+                    <div class="form-text text-muted" style="font-size:12px">
+                        Mã OTP gồm 6 số sẽ được gửi về email này.
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-submit w-100">
+                    Gửi mã OTP
+                </button>
+            </form>
+        }
+
+        <div class="text-center mt-3">
+            <a asp-action="Login" style="font-size:13px;color:#1e88e5">← Quay lại đăng nhập</a>
+        </div>
+        <p class="text-center text-muted mt-3 mb-0" style="font-size:12px">
+            &copy; 2026 PetCare Management System
+        </p>
+    </div>
+</div>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
