@@ -1,0 +1,87 @@
+@model IEnumerable<PetCareManagement.Models.TiemPhong>
+
+@{
+    ViewData["Title"] = "Quản lý tiêm phòng";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">💉 Danh sách tiêm phòng</h4>
+
+        <a asp-action="Create" class="btn btn-light btn-sm">
+            ➕ Thêm tiêm phòng
+        </a>
+    </div>
+
+    <div class="card-body">
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info mb-0">
+                Chưa có dữ liệu tiêm phòng.
+            </div>
+        }
+        else
+        {
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th>STT</th>
+                        <th>Thú cưng</th>
+                        <th>Vaccine</th>
+                        <th>Ngày tiêm</th>
+                        <th>Ngày tiêm tiếp</th>
+                        <th>Chu kỳ</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                @{
+                    int stt = 1;
+                }
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-center">@stt</td>
+
+                        <td>
+                            @(item.MaTcNavigation?.TenThuCung ?? "N/A")
+                        </td>
+
+                        <td>
+                            @item.TenVaccine
+                        </td>
+
+                        <td class="text-center">
+                            @item.NgayTiem.ToString("dd/MM/yyyy")
+                        </td>
+
+                        <td class="text-center">
+                            @if (item.NgayTiemTiep.HasValue)
+                            {
+                                <span class="badge bg-success">
+                                    @item.NgayTiemTiep.Value.ToString("dd/MM/yyyy")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    Chưa xác định
+                                </span>
+                            }
+                        </td>
+
+                        <td class="text-center">
+                            @item.ChuKyNgay ngày
+                        </td>
+                    </tr>
+
+                    stt++;
+                }
+                </tbody>
+            </table>
+        }
+
+    </div>
+</div>

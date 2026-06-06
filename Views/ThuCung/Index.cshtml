@@ -1,0 +1,106 @@
+@model IEnumerable<ThuCung>
+
+@{
+    ViewData["Title"] = "Hồ sơ thú cưng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">🐾 Hồ sơ thú cưng</h4>
+    <a asp-action="Create" class="btn btn-success btn-sm">
+        ➕ Thêm thú cưng
+    </a>
+</div>
+
+@* Thanh tìm kiếm *@
+<form method="get" class="mb-3">
+    <div class="input-group" style="max-width:420px">
+        <input type="text" name="search" value="@ViewBag.Search"
+               class="form-control" placeholder="Tìm tên thú cưng hoặc chủ nuôi…" />
+        <button class="btn btn-outline-secondary" type="submit">🔍</button>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+        {
+            <a asp-action="Index" class="btn btn-outline-danger">✕</a>
+        }
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+        {
+            <span>Không tìm thấy kết quả cho "<strong>@ViewBag.Search</strong>".</span>
+        }
+        else
+        {
+            <span>Chưa có thú cưng nào. <a asp-action="Create">Thêm ngay</a>!</span>
+        }
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Tên thú cưng</th>
+                    <th>Loài</th>
+                    <th>Giống</th>
+                    <th>Chủ nuôi</th>
+                    <th>Ngày sinh</th>
+                    <th>Cân nặng</th>
+                    <th>Màu lông</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tc in Model)
+                {
+                    <tr>
+                        <td class="text-muted small">@tc.MaTc</td>
+                        <td class="fw-semibold">
+                            @{
+                                var icon = tc.Loai == "Chó" ? "🐶" : tc.Loai == "Mèo" ? "🐱" : "🐾";
+                            }
+                            @icon @tc.TenThuCung
+                        </td>
+                        <td>
+                            @if (tc.Loai == "Chó")
+                            {
+                                <span class="badge bg-warning text-dark">Chó</span>
+                            }
+                            else if (tc.Loai == "Mèo")
+                            {
+                                <span class="badge bg-info text-dark">Mèo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@tc.Loai</span>
+                            }
+                        </td>
+                        <td>@(tc.Giong ?? "—")</td>
+                        <td>
+                            <a asp-controller="ChuNuoi" asp-action="Details"
+                               asp-route-id="@tc.MaCn" class="text-decoration-none">
+                                👤 @tc.MaCnNavigation?.HoTen
+                            </a>
+                        </td>
+                        <td>@(tc.NgaySinh.HasValue ? tc.NgaySinh.Value.ToString("dd/MM/yyyy") : "—")</td>
+                        <td>@(tc.CanNang.HasValue ? tc.CanNang.Value.ToString("0.##") + " kg" : "—")</td>
+                        <td>@(tc.MauLong ?? "—")</td>
+                        <td class="text-center" style="white-space:nowrap">
+                            <a asp-action="Details" asp-route-id="@tc.MaTc"
+                               class="btn btn-outline-info btn-sm" title="Chi tiết">🔍</a>
+                            <a asp-action="Edit" asp-route-id="@tc.MaTc"
+                               class="btn btn-outline-warning btn-sm" title="Sửa">✏️</a>
+                            <a asp-action="Delete" asp-route-id="@tc.MaTc"
+                               class="btn btn-outline-danger btn-sm" title="Xoá">🗑️</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small">Tổng cộng: <strong>@Model.Count()</strong> thú cưng</p>
+}

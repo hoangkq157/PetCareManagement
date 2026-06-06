@@ -1,0 +1,133 @@
+@model IEnumerable<PetCareManagement.Models.LichHen>
+
+@{
+    ViewData["Title"] = "Lịch Sử Đặt Lịch";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-1">📅 Lịch Sử Đặt Lịch Của Tôi</h2>
+            <p class="text-muted mb-0">Theo dõi trạng thái và quản lý các lịch hẹn chăm sóc bé cưng của bạn.</p>
+        </div>
+        <a href="/ChuNuoi/DatLich" class="btn btn-warning fw-bold text-white shadow-sm px-4 py-2">
+            <i class="fas fa-plus-circle me-2"></i> Đặt Lịch Mới
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 border rounded bg-light shadow-sm">
+            <div class="mb-3 text-muted" style="font-size: 3rem;">🐾</div>
+            <h4 class="text-secondary">Bạn chưa có lịch hẹn nào!</h4>
+            <p class="text-muted">Hãy tạo lịch hẹn đầu tiên để bé yêu được chăm sóc tốt nhất nhé.</p>
+            <a href="/ChuNuoi/DatLich" class="btn btn-primary mt-2">Đặt lịch ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase fs-7 text-secondary">
+                        <tr>
+                            <th class="ps-4">Thú Cưng</th>
+                            <th>Dịch Vụ Đăng Ký</th>
+                            <th>Thời Gian Hẹn</th>
+                            <th>Trạng Thái</th>
+                            <th>Nhân Viên Phụ Trách</th>
+                            <th>Ghi Chú</th>
+                            <th class="pe-4 text-end">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar bg-soft-success text-success p-2 rounded-circle me-2 d-inline-flex justify-content-center align-items-center" style="width: 35px; height: 35px; background-color: #e8f5e9;">
+                                            🐶
+                                        </div>
+                                        <span class="fw-bold text-dark">@item.MaTcNavigation?.TenThuCung</span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (item.LichHenDichVus != null && item.LichHenDichVus.Any())
+                                    {
+                                        foreach (var lhdv in item.LichHenDichVus)
+                                        {
+                                            <span class="badge bg-light text-dark border me-1">@lhdv.MaDvNavigation?.TenDichVu</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fs-7">Chưa chọn dịch vụ</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold text-dark"><i class="far fa-calendar-alt text-muted me-1"></i> @item.NgayHen.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted fs-7"><i class="far fa-clock text-muted me-1"></i> @item.GioHen.ToString("HH:mm")</div>
+                                </td>
+
+                                <td>
+                                    @if (item.TrangThai == "HoanThanh")
+                                    {
+                                        <span class="badge bg-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> Hoàn thành</span>
+                                    }
+                                    else if (item.TrangThai == "XacNhan")
+                                    {
+                                        <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="fas fa-calendar-check me-1"></i> Đã xác nhận</span>
+                                    }
+                                    else if (item.TrangThai == "Huy")
+                                    {
+                                        <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="fas fa-times-circle me-1"></i> Đã huỷ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="fas fa-hourglass-half me-1"></i> Chờ duyệt</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.MaNvNavigation != null)
+                                    {
+                                        <span class="text-dark">@item.MaNvNavigation.HoTen</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted italic fs-7">Hệ thống đang xếp...</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <small class="text-muted d-inline-block text-truncate" style="max-width: 150px;" title="@item.GhiChu">
+                                        @(string.IsNullOrEmpty(item.GhiChu) ? "Không có" : item.GhiChu)
+                                    </small>
+                                </td>
+
+                                <td class="pe-4 text-end">
+                                    @if (item.TrangThai == "ChoDuyet" || item.TrangThai == "XacNhan")
+                                    {
+                                        <form asp-controller="ChuNuoi" asp-action="HuyLichHen" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch hẹn này không?');" style="display:inline">
+                                            <input type="hidden" name="id" value="@item.MaLh" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                                <i class="fas fa-ban me-1"></i> Hủy hẹn
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fs-7">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

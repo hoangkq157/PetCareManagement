@@ -1,0 +1,96 @@
+@model IEnumerable<PetCareManagement.Models.DichVu>
+
+@{
+    ViewData["Title"] = "Danh sách dịch vụ chăm sóc thú cưng";
+}
+
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-primary text-uppercase">✂️ DANH MỤC DỊCH VỤ CHĂM SÓC 🐾</h2>
+        <p class="text-muted fs-5">Hệ thống dịch vụ chuẩn 5 sao giúp bé cưng của bạn luôn khỏe mạnh và lộng lẫy.</p>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8 col-lg-6">
+            <form method="get" asp-controller="ChuNuoi" asp-action="DanhSachDichVu" class="input-group shadow-sm rounded">
+                <input class="form-control form-control-lg border-primary" 
+                       name="search" 
+                       value="@ViewBag.Search" 
+                       placeholder="Tìm dịch vụ (Tắm, tỉa lông, khách sạn...)" />
+                <button class="btn btn-primary px-4" type="submit">
+                    <i class="fas fa-search"></i> Tìm kiếm
+                </button>
+            </form>
+            @if (!string.IsNullOrEmpty(ViewBag.Search))
+            {
+                <div class="text-center mt-2">
+                    <a href="/ChuNuoi/DanhSachDichVu" class="text-decoration-none text-muted small">✕ Xóa bộ lọc tìm kiếm</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <h4 class="text-secondary">😥 Không tìm thấy dịch vụ nào phù hợp!</h4>
+            <p class="text-muted">Vui lòng thử lại với từ khóa khác.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden position-relative hover-card" style="transition: transform 0.2s; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;">
+                        
+                        <div class="card-header bg-gradient bg-primary text-white py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(45deg, #0d6efd, #0dcaf0);">
+                            <h5 class="card-title mb-0 fw-bold text-truncate" style="max-width: 80%;">@item.TenDichVu</h5>
+                            <span class="badge bg-white text-primary rounded-pill fw-bold px-2 py-1 small">@item.DanhMuc</span>
+                        </div>
+
+                        <div class="card-body p-4 d-flex flex-column justify-content-between">
+                            <div>
+                                <p class="text-muted fs-7 mb-4 italic text-start" style="min-height: 48px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    @(string.IsNullOrEmpty(item.MoTa) ? "Dịch vụ chăm sóc cao cấp dành riêng cho thú cưng của bạn tại Spa." : item.MoTa)
+                                </p>
+
+                                <div class="bg-light rounded p-3 mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-1">
+                                        <span class="text-dark fw-medium">🐶 Dành cho Chó:</span>
+                                        <span class="fw-bold text-danger">@item.GiaCho.ToString("N0") đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-1">
+                                        <span class="text-dark fw-medium">🐱 Dành cho Mèo:</span>
+                                        <span class="fw-bold text-danger">@item.GiaMeo.ToString("N0") đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-dark fw-medium">🐹 Thú cưng khác:</span>
+                                        <span class="fw-bold text-danger">@item.GiaKhac.ToString("N0") đ</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto">
+                                <a href="/ChuNuoi/DatLich" class="btn btn-warning w-100 fw-bold text-white text-uppercase rounded-pill py-2 shadow-sm">
+                                    🐾 Đặt Lịch Ngay
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .fs-7 {
+        font-size: 0.9rem;
+    }
+</style>

@@ -1,13 +1,7 @@
-﻿@using PetCareManagement.Data
-@inject PetCareDbContext _layoutCtx
-
 @{
-    var homNayLayout = DateOnly.FromDateTime(DateTime.Today);
-
-    var soCanhBao = _layoutCtx.TiemPhongs.Count(t =>
-        t.NgayTiemTiep.HasValue &&
-        t.NgayTiemTiep.Value >= homNayLayout &&
-        t.NgayTiemTiep.Value <= homNayLayout.AddDays(7));
+    
+    // Lấy thông tin tên khách hàng từ Session (nếu bạn có lưu)
+    var tenKhachHang = Context.Session.GetString("ChuNuoiName") ?? Context.Session.GetString("NhanVienName");
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -15,7 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PetCare</title>
+    <title>@ViewData["Title"] - Cổng Thông Tin Chủ Nuôi</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -27,8 +21,8 @@
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom shadow-sm mb-3">
             <div class="container-fluid">
 
-                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
-                    🐾 PetCare
+                <a class="navbar-brand fw-bold" href="/ChuNuoi/Index">
+                    🐾 PetCare <small class="text-muted" style="font-size: 11px; font-weight: normal;">(Khách hàng)</small>
                 </a>
 
                 <button class="navbar-toggler" type="button"
@@ -38,64 +32,46 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navMain">
-                    @* Menu trái *@
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">🏠 Trang chủ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="ThuCung" asp-action="Index">🐾 Thú cưng</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="LichHen" asp-action="Index">📅 Lịch hẹn</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="TiemPhong" asp-action="Index">
-                                💉 Tiêm phòng
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               asp-controller="TiemPhong"
-                               asp-action="CanhBao">
-                                🔔 Cảnh báo
-
-                                @if (soCanhBao > 0)
-                                {
-                                    <span class="badge bg-danger rounded-pill">
-                                        @soCanhBao
-                                    </span>
-                          }
+                            <a class="nav-link fw-bold text-primary" href="/ChuNuoi/LichSuDatLich">
+                                📋Lịch Sử Đặt Lịch
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="DichVu" asp-action="Index">✂️ Dịch vụ</a>
+                            <a class="nav-link fw-bold text-success" href="/ChuNuoi/DatLich">
+                                ➕ Đặt Lịch Hẹn Mới
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="HoaDon" asp-action="Index">🧾 Hoá đơn</a>
+                            <a class="nav-link" href="/ChuNuoi/DanhSachTiemPhong">
+                                🐾 Lịch Tiêm Phòng Của Thú Cưng
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="BaoCao" asp-action="DoanhThu">📊 Báo cáo</a>
+                         <li class="nav-item">
+                            <a class="nav-link" href="/ChuNuoi/DanhSachThuCung">
+                                🐾 Danh Sách Thú Cưng Của Bạn
+                            </a>
                         </li>
                     </ul>
 
-                    @* Thông tin người dùng + Đăng xuất *@
-                    @{
-                        var tenNV = Context.Session.GetString("NhanVienName");
-                        var vaiTro = Context.Session.GetString("NhanVienRole");
-                    }
-                    @if (tenNV != null)
+                    @* Hiển thị tên người dùng và nút Đăng xuất *@
+                    @if (tenKhachHang != null)
                     {
                         <ul class="navbar-nav">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center gap-1"
                                    href="#" role="button" data-bs-toggle="dropdown">
                                     <span class="badge bg-success rounded-circle p-1" style="font-size:9px">●</span>
-                                    <span class="fw-semibold">@tenNV</span>
-                                    <small class="text-muted">(@vaiTro)</small>
+                                    <span class="fw-semibold">@tenKhachHang</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item py-2" href="/ChuNuoi/ThongTinChuNuoi">
+                                                👤 Thông Tin Chủ Nuôi
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form asp-controller="Auth" asp-action="Logout" method="post">
                                             @Html.AntiForgeryToken()
@@ -114,7 +90,7 @@
     </header>
 
     <div class="container">
-        @* TempData thông báo toàn cục *@
+        @* Bộ thông báo TempData giữ nguyên từ bản gốc của bạn *@
         @if (TempData["Success"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -135,6 +111,7 @@
         </main>
     </div>
 
+    @* Footer giữ nguyên giao diện đơn giản như mẫu bạn gửi *@
     <footer class="border-top footer text-muted mt-4">
         <div class="container py-2">
             &copy; 2026 — PetCare Management System

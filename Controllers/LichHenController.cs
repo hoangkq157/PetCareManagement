@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PetCareManagement.Data;
 using PetCareManagement.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace PetCareManagement.Controllers
 {
@@ -128,15 +129,40 @@ namespace PetCareManagement.Controllers
             return View(lichHen);
         }
         // DoiTrangThai cap nhat trang thai lich hen ma khong can vao trang edit
+     // DoiTrangThai cap nhat trang thai lich hen ma khong can vao trang edit
+    // DoiTrangThai cap nhat trang thai lich hen ma khong can vao trang edit
         [HttpPost]
         public async Task<IActionResult> DoiTrangThai(int id, string trangThai)
         {
             var lichHen = await _context.LichHens.FindAsync(id);
             if (lichHen == null) return NotFound();
 
+            // 1. Cập nhật trạng thái (XacNhan hoặc Huy)
             lichHen.TrangThai = trangThai;
+
+            // 2. Nếu bấm nút "Xác nhận" -> Lấy MaNV từ Session theo dạng String
+            if (trangThai == "XacNhan")
+            {
+                // Lấy chuỗi ID từ Session (Ví dụ lấy ra chuỗi "1" hoặc "5")
+                string maNvStr = HttpContext.Session.GetString("NhanVienId");
+
+                // Kiểm tra xem chuỗi có dữ liệu không và tiến hành đổi sang kiểu số (int)
+                if (!string.IsNullOrEmpty(maNvStr) && int.TryParse(maNvStr, out int maNvInt))
+                {
+                    lichHen.MaNv = maNvInt; // Gán số Id vừa đổi vào lịch hẹn
+                }
+                else
+                {
+                    // Trường hợp bấm nút nhưng Session bị mất (do lâu quá không bấm hoặc chưa đăng nhập)
+                    TempData["Error"] = "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại để duyệt!";
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
             _context.Update(lichHen);
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = trangThai == "XacNhan" ? "Đã duyệt và gán nhân viên thành công!" : "Đã hủy lịch hẹn.";
             return RedirectToAction(nameof(Index));
         }
         // GET: LichHen/Edit/5

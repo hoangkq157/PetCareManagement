@@ -1,0 +1,64 @@
+@model IEnumerable<PetCareManagement.Models.DichVu>
+@{
+    ViewData["Title"] = "Danh sách dịch vụ";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">✂️ Dịch vụ</h3>
+        <p class="text-muted mb-0">Quản lý danh mục dịch vụ cho thú cưng.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">➕ Thêm dịch vụ</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input class="form-control" name="search" value="@ViewBag.Search" placeholder="Tìm theo tên hoặc danh mục..." />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Tìm kiếm</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Tên dịch vụ</th>
+            <th>Danh mục</th>
+            <th>Giá chó</th>
+            <th>Giá mèo</th>
+            <th>Giá khác</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TenDichVu</td>
+                <td>@item.DanhMuc</td>
+                <td>@item.GiaCho.ToString("N0") VNĐ</td>
+                <td>@item.GiaMeo.ToString("N0") VNĐ</td>
+                <td>@item.GiaKhac.ToString("N0") VNĐ</td>
+                <td>
+                    @if (item.TrangThai)
+                    {
+                        <span class="badge bg-success">Đang mở</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Tạm đóng</span>
+                    }
+                </td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.MaDv">Sửa</a>
+                    <form asp-action="Delete" asp-route-id="@item.MaDv" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xoá dịch vụ này?');">Xoá</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

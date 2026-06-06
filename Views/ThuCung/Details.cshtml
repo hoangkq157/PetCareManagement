@@ -1,0 +1,255 @@
+@model ThuCung
+
+@{
+    ViewData["Title"] = "Chi tiết thú cưng";
+    var icon = Model.Loai == "Chó" ? "🐶" : Model.Loai == "Mèo" ? "🐱" : "🐾";
+}
+
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Danh sách</a>
+    <h5 class="mb-0">@icon Chi tiết — <span class="text-primary">@Model.TenThuCung</span></h5>
+    <div class="ms-auto d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.MaTc" class="btn btn-outline-warning btn-sm">✏️ Sửa</a>
+        <a asp-action="Delete" asp-route-id="@Model.MaTc" class="btn btn-outline-danger btn-sm">🗑️ Xoá</a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    @* --- Card thông tin cơ bản --- *@
+    <div class="col-md-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">📋 Thông tin hồ sơ</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5 text-muted">Tên</dt>
+                    <dd class="col-7 fw-semibold">@icon @Model.TenThuCung</dd>
+
+                    <dt class="col-5 text-muted">Loài</dt>
+                    <dd class="col-7">
+                        @if (Model.Loai == "Chó")
+                        {
+                            <span class="badge bg-warning text-dark">Chó</span>
+                        }
+                        else if (Model.Loai == "Mèo")
+                        {
+                            <span class="badge bg-info text-dark">Mèo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">@Model.Loai</span>
+                        }
+                    </dd>
+
+                    <dt class="col-5 text-muted">Giống</dt>
+                    <dd class="col-7">@(Model.Giong ?? "—")</dd>
+
+                    <dt class="col-5 text-muted">Màu lông</dt>
+                    <dd class="col-7">@(Model.MauLong ?? "—")</dd>
+
+                    <dt class="col-5 text-muted">Ngày sinh</dt>
+                    <dd class="col-7">
+                        @if (Model.NgaySinh.HasValue)
+                        {
+                            var age = (DateOnly.FromDateTime(DateTime.Today).DayNumber
+                                       - Model.NgaySinh.Value.DayNumber) / 365;
+                            @Model.NgaySinh.Value.ToString("dd/MM/yyyy")
+                            <small class="text-muted">(~@age tuổi)</small>
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </dd>
+
+                    <dt class="col-5 text-muted">Cân nặng</dt>
+                    <dd class="col-7">
+                        @(Model.CanNang.HasValue ? Model.CanNang.Value.ToString("0.##") + " kg" : "—")
+                    </dd>
+
+                    <dt class="col-5 text-muted">Ghi chú</dt>
+                    <dd class="col-7">
+                        @if (!string.IsNullOrEmpty(Model.GhiChu))
+                        {
+                            <span class="fst-italic">@Model.GhiChu</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    @* --- Card chủ nuôi --- *@
+    <div class="col-md-7">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">👤 Thông tin chủ nuôi</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.MaCnNavigation != null)
+                {
+                    var cn = Model.MaCnNavigation;
+                    <dl class="row mb-0">
+                        <dt class="col-5 text-muted">Họ tên</dt>
+                        <dd class="col-7 fw-semibold">@cn.HoTen</dd>
+
+                        <dt class="col-5 text-muted">Điện thoại</dt>
+                        <dd class="col-7">
+                            <a href="tel:@cn.SoDienThoai" class="text-decoration-none">
+                                📞 @cn.SoDienThoai
+                            </a>
+                        </dd>
+
+                        <dt class="col-5 text-muted">Email</dt>
+                        <dd class="col-7">@(cn.Email ?? "—")</dd>
+
+                        <dt class="col-5 text-muted">Địa chỉ</dt>
+                        <dd class="col-7">@(cn.DiaChi ?? "—")</dd>
+
+                        <dt class="col-5 text-muted">Ngày đăng ký</dt>
+                        <dd class="col-7">@cn.NgayDangKy.ToString("dd/MM/yyyy")</dd>
+                    </dl>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Không tìm thấy thông tin chủ nuôi.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* --- Lịch sử lịch hẹn --- *@
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">📅 Lịch sử lịch hẹn</h6>
+                <a asp-controller="LichHen" asp-action="Create"
+                   class="btn btn-outline-primary btn-sm">➕ Tạo lịch hẹn</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.LichHens.Any())
+                {
+                    <p class="text-muted p-3 mb-0">Chưa có lịch hẹn nào.</p>
+                }
+                else
+                {
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ngày hẹn</th>
+                                <th>Giờ</th>
+                                <th>Trạng thái</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lh in Model.LichHens.OrderByDescending(x => x.NgayHen))
+                            {
+                                <tr>
+                                    <td>@lh.NgayHen.ToString("dd/MM/yyyy")</td>
+                                    <td>@lh.GioHen.ToString("HH:mm")</td>
+                                    <td>
+                                        @switch (lh.TrangThai)
+                                        {
+                                            case "XacNhan":
+                                                <span class="badge bg-success">✓ Xác nhận</span>
+                                                break;
+                                            case "HoanThanh":
+                                                <span class="badge bg-secondary">✅ Hoàn thành</span>
+                                                break;
+                                            case "Huy":
+                                                <span class="badge bg-danger">✕ Huỷ</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-warning text-dark">⏳ Chờ duyệt</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-muted small">@(lh.GhiChu ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* --- Lịch sử tiêm phòng --- *@
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">💉 Lịch sử tiêm phòng</h6>
+                <a asp-controller="TiemPhong" asp-action="Create"
+                   class="btn btn-outline-danger btn-sm">➕ Ghi nhận tiêm</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.TiemPhongs.Any())
+                {
+                    <p class="text-muted p-3 mb-0">Chưa có lịch sử tiêm phòng.</p>
+                }
+                else
+                {
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Vaccine</th>
+                                <th>Ngày tiêm</th>
+                                <th>Ngày tái tiêm</th>
+                                <th>Bác sĩ</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tp in Model.TiemPhongs.OrderByDescending(x => x.NgayTiem))
+                            {
+                                var today = DateOnly.FromDateTime(DateTime.Today);
+                                var soonDue = tp.NgayTiemTiep.HasValue
+                                             && tp.NgayTiemTiep.Value <= today.AddDays(30)
+                                             && tp.NgayTiemTiep.Value >= today;
+                                var overDue = tp.NgayTiemTiep.HasValue
+                                             && tp.NgayTiemTiep.Value < today;
+                                <tr class="@(overDue ? "table-danger" : soonDue ? "table-warning" : "")">
+                                    <td class="fw-semibold">@tp.TenVaccine</td>
+                                    <td>@tp.NgayTiem.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (tp.NgayTiemTiep.HasValue)
+                                        {
+                                            @tp.NgayTiemTiep.Value.ToString("dd/MM/yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>@(tp.BacSiThucHien ?? "—")</td>
+                                    <td>
+                                        @if (overDue)
+                                        {
+                                            <span class="badge bg-danger">⚠️ Quá hạn</span>
+                                        }
+                                        else if (soonDue)
+                                        {
+                                            <span class="badge bg-warning text-dark">🔔 Sắp đến hạn</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">✓ Đã tiêm</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
