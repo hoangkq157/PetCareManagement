@@ -6,7 +6,7 @@
 
 <table class="table table-bordered">
 <thead><tr>
-    <th>Tên thú cưng</th><th>Chủ nuôi</th>
+    <th>Tên thú cưng</th><th>Chủ nuôi</th><th>Số điện thoại</th>
     <th>Vaccine</th><th>Ngày tiêm tới</th><th>Còn lại</th>
 </tr></thead>
 <tbody>
@@ -17,6 +17,7 @@
     var rowClass = conLai <= 3 ? "table-danger" : "table-warning";
     <tr class="@rowClass">
         <td>@tp.MaTcNavigation?.TenThuCung</td>
+        <td>@tp.MaTcNavigation?.MaCnNavigation?.HoTen</td>
         <td>@tp.MaTcNavigation?.MaCnNavigation?.SoDienThoai</td>
         <td>@tp.TenVaccine</td>
         <td>@tp.NgayTiemTiep?.ToString("dd/MM/yyyy")</td>
