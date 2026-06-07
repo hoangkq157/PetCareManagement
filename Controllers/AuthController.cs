@@ -37,17 +37,17 @@ public class AuthController : Controller
     // POST /Auth/Login
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(string taiKhoan, string matKhau)
+    public async Task<IActionResult> Login(string email, string matKhau)
     {
-        if (string.IsNullOrWhiteSpace(taiKhoan) || string.IsNullOrWhiteSpace(matKhau))
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(matKhau))
         {
-            ViewBag.Error = "Vui lòng nhập đầy đủ tài khoản và mật khẩu.";
+            ViewBag.Error = "Vui lòng nhập đầy đủ email và mật khẩu.";
             return View();
         }
 
         // ── Bước 1: Thử đăng nhập NhanVien (bằng Email) ──────────────────
         var nv = await _context.NhanViens
-            .FirstOrDefaultAsync(n => n.Email == taiKhoan
+            .FirstOrDefaultAsync(n => n.Email == email
                                    && n.MatKhau == matKhau
                                    && n.TrangThai == true);
 
@@ -60,9 +60,9 @@ public class AuthController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        // ── Bước 2: Thử đăng nhập ChuNuoi (bằng Số điện thoại) ──────────
+        // ── Bước 2: Thử đăng nhập ChuNuoi (bằng Email) ──────────
         var cn = await _context.ChuNuois
-            .FirstOrDefaultAsync(c => c.SoDienThoai == taiKhoan
+            .FirstOrDefaultAsync(c => c.Email == email
                                    && c.MatKhau == matKhau);
 
         if (cn != null)
@@ -86,7 +86,7 @@ public class AuthController : Controller
     {
         // Nếu ChuNuoi đã đăng nhập → về Home (tạm thời)
         if (HttpContext.Session.GetString("ChuNuoiId") != null)
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "ChuNuoi");
 
         // Nếu NhanVien đã đăng nhập → về trang quản lý
         if (HttpContext.Session.GetString("NhanVienId") != null)
@@ -131,7 +131,7 @@ public class AuthController : Controller
         }
 
         // Lưu vào database
-        var nv = new NhanVien
+        var cn = new ChuNuoi
         {
             HoTen        = hoTen.Trim(),
             SoDienThoai  = soDienThoai.Trim(),
@@ -145,9 +145,8 @@ public class AuthController : Controller
         await _context.SaveChangesAsync();
 
         // Đăng nhập luôn sau khi đăng ký
-        HttpContext.Session.SetString("NhanVienId",   nv.MaNv.ToString());
-        HttpContext.Session.SetString("NhanVienName", nv.HoTen);
-        HttpContext.Session.SetString("NhanVienRole", nv.VaiTro);
+        HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
+        HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
 
         TempData["Success"] = $"Chào mừng {cn.HoTen}! Hãy thêm thú cưng của bạn.";
         // Tạm thời điều hướng sang Home, sau đổi thành "ChuNuoiPortal" khi có giao diện
