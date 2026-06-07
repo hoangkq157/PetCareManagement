@@ -7,12 +7,6 @@ builder.Services.AddDbContext<PetCareDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("PetCareConnection")));
 builder.Services.AddTransient<IEmailService, EmailService>();
-builder.Services.AddSession();
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddDbContext<PetCareDbContext>(options =>options.UseSqlServer(builder.Configuration.GetConnectionString("PetCareConnection")));
-
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -20,9 +14,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
- 
 builder.Services.AddControllersWithViews();
-
 
 var app = builder.Build();
 
