@@ -21,12 +21,14 @@ namespace PetCareManagement.Controllers
         }
 
         // GET: LichHen
-        public async Task<IActionResult> Index(string? trangThai, DateOnly? ngay)
+        public async Task<IActionResult> Index(string? trangThai, DateOnly? ngay, string? searchTenChuNuoi)
         {
             var query = _context.LichHens
                 .Include(l => l.MaTcNavigation)          // load Thú cưng
                     .ThenInclude(t => t.MaCnNavigation)   // load Chủ nuôi qua Thú cưng
                 .Include(l => l.MaNvNavigation)          // load Nhân viên
+                .Include(l => l.LichHenDichVus)          // load danh sách dịch vụ của lịch hẹn (MỚI THÊM)
+                    .ThenInclude(ld => ld.MaDvNavigation) // load chi tiết tên dịch vụ (MỚI THÊM)
                 .AsQueryable();
 
             // Lọc theo trạng thái nếu có
@@ -37,9 +39,18 @@ namespace PetCareManagement.Controllers
             if (ngay.HasValue)
                 query = query.Where(l => l.NgayHen == ngay.Value);
 
+            // Lọc tìm kiếm theo tên chủ nuôi nếu có (MỚI THÊM)
+            if (!string.IsNullOrEmpty(searchTenChuNuoi))
+            {
+                query = query.Where(l => l.MaTcNavigation.MaCnNavigation.HoTen.Contains(searchTenChuNuoi));
+            }
+
             // Gửi danh sách trạng thái cho dropdown lọc
             ViewBag.DanhSachTrangThai = new List<string>
                 { "ChoDuyet", "XacNhan", "HoanThanh", "Huy" };
+
+            // Giữ lại từ khóa tìm kiếm để hiển thị lên Form (MỚI THÊM)
+            ViewBag.SearchTenChuNuoi = searchTenChuNuoi;
 
             return View(await query
                 .OrderBy(l => l.NgayHen).ThenBy(l => l.GioHen)

@@ -7,9 +7,22 @@
 <h1>Danh Sách Lịch Hẹn</h1>
 
 <p>
-    <a asp-action="Create">Tạo Lịch Hẹn Mới</a>
+    <a asp-action="Create" class="btn btn-primary">Tạo Lịch Hẹn Mới</a>
 </p>
-<table class="table">
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <input type="text" name="searchTenChuNuoi" value="@ViewBag.SearchTenChuNuoi" class="form-control" placeholder="Nhập tên chủ nuôi..." />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-info text-white">Tìm kiếm</button>
+            <a asp-action="Index" class="btn btn-secondary">Xóa bộ lọc</a>
+        </div>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped">
     <thead>
         <tr>
             <th>
@@ -18,6 +31,13 @@
             <th>
                 Giờ Hẹn
             </th>
+            <th>
+                Tên Chủ Nuôi </th>
+            <th>
+                Tên Thú Cưng
+            </th>
+            <th>
+                Tên Dịch Vụ </th>
             <th>
                 Trạng Thái
             </th>
@@ -30,10 +50,7 @@
             <th>
                 Tên Nhân Viên
             </th>
-            <th>
-                Tên Thú Cưng
-            </th>
-            <th></th>
+            <th>Hành động</th>
         </tr>
     </thead>
     <tbody>
@@ -44,6 +61,22 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.GioHen)
+            </td>
+            <td>
+                @item.MaTcNavigation?.MaCnNavigation?.HoTen
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaTcNavigation.TenThuCung)
+            </td>
+            <td>
+                @if (item.LichHenDichVus != null && item.LichHenDichVus.Any())
+                {
+                    @string.Join(", ", item.LichHenDichVus.Select(ld => ld.MaDvNavigation?.TenDichVu))
+                }
+                else
+                {
+                    <span class="text-muted">Chưa chọn dịch vụ</span>
+                }
             </td>
             <td>
                 @if (item.TrangThai == "HoanThanh")
@@ -71,9 +104,6 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.MaNvNavigation.HoTen)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaTcNavigation.TenThuCung)
             </td>
             <td style="white-space: nowrap;">
 

@@ -72,7 +72,7 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
         public IActionResult DatLich()
         {
             // Truyền danh sách dịch vụ ra View để khách chọn trong thẻ <select>
-            ViewBag.DichVus = _context.DichVus.ToList();
+            ViewBag.DichVus = _context.DichVus.Where(dv => dv.TrangThai == true).ToList();
             return View();
         }
 
