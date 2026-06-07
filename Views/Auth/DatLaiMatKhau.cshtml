@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Đặt lại mật khẩu";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đặt lại mật khẩu — PetCare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            width: 100%; max-width: 420px;
+            border: none; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border-radius: 16px 16px 0 0;
+            padding: 36px 32px 28px;
+            text-align: center; color: white;
+        }
+        .card-header .logo { font-size: 48px; }
+        .card-header h1 { font-size: 20px; font-weight: 700; margin: 8px 0 4px; }
+        .card-header p  { font-size: 13px; opacity: .85; margin: 0; }
+        .card-body { padding: 32px; }
+        .btn-submit {
+            background: linear-gradient(135deg, #43a047, #1e88e5);
+            border: none; border-radius: 8px;
+            padding: 10px; font-weight: 600;
+        }
+        .btn-submit:hover { opacity: .9; }
+        .step-indicator {
+            font-size: 12px; color: #999;
+            text-align: center; margin-bottom: 20px;
+        }
+        .step-indicator span {
+            display: inline-block; width: 28px; height: 28px;
+            line-height: 28px; border-radius: 50%;
+            background: #e0e0e0; color: #999;
+            font-weight: 700; margin: 0 4px;
+        }
+        .step-indicator span.active { background: #1e88e5; color: white; }
+        .step-indicator span.done   { background: #43a047; color: white; }
+        .strength-bar {
+            height: 4px; border-radius: 4px;
+            transition: all .3s; background: #e0e0e0; margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="card-header">
+        <div class="logo">🔒</div>
+        <h1>Đặt lại mật khẩu</h1>
+        <p>Tạo mật khẩu mới cho tài khoản</p>
+    </div>
+    <div class="card-body">
+
+        <div class="step-indicator">
+            <span class="done">✓</span> Nhập email
+            <span class="done">✓</span> Xác minh OTP
+            <span class="active">3</span> Mật khẩu mới
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger py-2 mb-3">⚠️ @ViewBag.Error</div>
+        }
+
+        <form asp-action="DatLaiMatKhau" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label"
+                       style="font-size:14px;font-weight:500">Mật khẩu mới</label>
+                <input type="password" id="matKhauMoi" name="matKhauMoi"
+                       class="form-control" placeholder="Ít nhất 6 ký tự"
+                       required autofocus autocomplete="new-password" />
+                <div class="strength-bar" id="strengthBar"></div>
+                <div id="strengthText"
+                     style="font-size:11px;color:#999;margin-top:3px"></div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label"
+                       style="font-size:14px;font-weight:500">Xác nhận mật khẩu mới</label>
+                <input type="password" name="xacNhanMatKhau"
+                       class="form-control" placeholder="Nhập lại mật khẩu"
+                       required autocomplete="new-password" />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-submit w-100">
+                ✅ Đặt lại mật khẩu
+            </button>
+        </form>
+
+        <p class="text-center text-muted mt-3 mb-0" style="font-size:12px">
+            &copy; 2026 PetCare Management System
+        </p>
+    </div>
+</div>
+
+<script>
+    const input = document.getElementById('matKhauMoi');
+    const bar   = document.getElementById('strengthBar');
+    const txt   = document.getElementById('strengthText');
+
+    input.addEventListener('input', () => {
+        const v = input.value;
+        let score = 0;
+        if (v.length >= 6)  score++;
+        if (v.length >= 10) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+
+        const levels = [
+            { color: '#e53935', label: 'Rất yếu',   width: '20%'  },
+            { color: '#fb8c00', label: 'Yếu',        width: '40%'  },
+            { color: '#fdd835', label: 'Trung bình', width: '60%'  },
+            { color: '#43a047', label: 'Mạnh',       width: '80%'  },
+            { color: '#1e88e5', label: 'Rất mạnh',   width: '100%' },
+        ];
+        const level = levels[Math.min(score, 4)];
+        bar.style.background = level.color;
+        bar.style.width = level.width;
+        txt.style.color = level.color;
+        txt.textContent = v.length > 0 ? `Độ mạnh: ${level.label}` : '';
+    });
+</script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -57,14 +57,11 @@ public class TiemPhongController : Controller
         return View();
     }
 
-    // ==========================
     // POST: TiemPhong/Create
-    // ==========================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TiemPhong tiemPhong)
-   {
-        // Bỏ validate navigation property của Database First
+    {
         ModelState.Remove("MaTcNavigation");
 
         if (ModelState.IsValid)
@@ -101,11 +98,9 @@ public class TiemPhongController : Controller
             .ToListAsync();
 
         return View(tiemPhong);
-   }
-
-    // ==========================
+    }
+ 
     // POST: TiemPhong/Delete/5
-    // ==========================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
