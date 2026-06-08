@@ -1,0 +1,88 @@
+@model PetCareManagement.Models.TiemPhong
+
+@{
+    ViewData["Title"] = "Sửa tiêm phòng";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-warning text-dark">
+        <h4 class="mb-0">✏️ Cập nhật lịch tiêm phòng</h4>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaTp" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Thú cưng</label>
+                <select asp-for="MaTc" class="form-select">
+                    <option value="">-- Chọn thú cưng --</option>
+                    @foreach (var tc in ViewBag.DsThuCung)
+                    {
+                       if (tc.MaTc == Model.MaTc)
+                        {
+                            <option value="@tc.MaTc" selected>@tc.TenThuCung</option>
+                        }
+                        else
+                        {
+                            <option value="@tc.MaTc">@tc.TenThuCung</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="MaTc" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenVaccine" class="form-label"></label>
+                <input asp-for="TenVaccine" class="form-control" />
+                <span asp-validation-for="TenVaccine" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="NgayTiem" class="form-label"></label>
+                <input asp-for="NgayTiem" type="date" class="form-control" />
+                <span asp-validation-for="NgayTiem" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ChuKyNgay" class="form-label"></label>
+                <input asp-for="ChuKyNgay" type="number" class="form-control" />
+                <div class="form-text text-muted">
+                    Ngày tiêm tiếp theo sẽ được tính tự động từ Ngày tiêm + Chu kỳ.
+                </div>
+                <span asp-validation-for="ChuKyNgay" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LieuLuong" class="form-label"></label>
+                <input asp-for="LieuLuong" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BacSiThucHien" class="form-label"></label>
+                <input asp-for="BacSiThucHien" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GhiChu" class="form-label"></label>
+                <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-warning">
+                💾 Cập nhật
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                ↩ Quay lại
+            </a>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
