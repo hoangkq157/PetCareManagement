@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PetCareManagement.Data;
 using PetCareManagement.Models;
 using PetCareManagement.Services;
+using Microsoft.AspNetCore.Authentication;
 
 namespace PetCareManagement.Controllers;
 
@@ -281,11 +282,63 @@ public class AuthController : Controller
         TempData["Success"] = "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập.";
         return RedirectToAction("Login");
     }
+    // ĐĂNG NHẬP BẰNG GOOGLE
+    public IActionResult LoginGoogle()
+    {
+        var redirectUrl = Url.Action("GoogleCallback", "Auth");
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = redirectUrl
+        };
+        return Challenge(properties, "Google");
+    }
 
-    // ─────────────────────────────────────────────
+    public async Task<IActionResult> GoogleCallback()
+    {
+        var result = await HttpContext.AuthenticateAsync("Cookies");
+        if (!result.Succeeded)
+        {
+            ViewBag.Error = "Đăng nhập Google thất bại. Vui lòng thử lại.";
+            return View("Login");
+        }
+
+        var claims = result.Principal!.Claims.ToList();
+        var email  = claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+        var hoTen  = claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+
+        if (string.IsNullOrEmpty(email))
+        {
+            ViewBag.Error = "Không lấy được email từ Google.";
+            return View("Login");
+        }
+
+        // Tìm ChuNuoi theo email, nếu chưa có thì tạo mới
+        var cn = await _context.ChuNuois
+            .FirstOrDefaultAsync(c => c.Email == email.ToLower());
+
+        if (cn == null)
+        {
+            cn = new ChuNuoi
+            {
+                HoTen      = hoTen ?? email,
+                Email      = email.ToLower(),
+                MatKhau    = "",
+                NgayDangKy = DateOnly.FromDateTime(DateTime.Today)
+            };
+            _context.ChuNuois.Add(cn);
+            await _context.SaveChangesAsync();
+        }
+
+        // Set Session như đăng nhập thường
+        HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
+        HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
+
+        await HttpContext.SignOutAsync("Cookies"); // dọn cookie OAuth tạm
+
+        TempData["Success"] = $"Chào mừng {cn.HoTen}!";
+        return RedirectToAction("Index", "ChuNuoi");
+    }
     // ĐĂNG XUẤT
-    // ─────────────────────────────────────────────
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Logout()

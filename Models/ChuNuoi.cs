@@ -18,7 +18,7 @@ public partial class ChuNuoi
 
     [StringLength(15)]
     [Unicode(false)]
-    public string SoDienThoai { get; set; } = null!;
+    public string? SoDienThoai { get; set; }
 
     [StringLength(255)]
     [Unicode(false)]
