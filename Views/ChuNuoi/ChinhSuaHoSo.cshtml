@@ -1,0 +1,95 @@
+@model ChuNuoi
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Hồ Sơ";
+    Layout = "~/Views/Shared/_LayoutChuNuoi.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a asp-action="ThongTinCaNhan" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold text-primary mb-0">✏️ Chỉnh Sửa Hồ Sơ</h2>
+                    <p class="text-muted mb-0 small">Cập nhật thông tin cá nhân của bạn</p>
+                </div>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ @ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <form asp-action="ChinhSuaHoSo" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-4 text-center">
+                        <div class="mx-auto d-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold mb-2"
+                             style="width:72px;height:72px;font-size:1.8rem;">
+                            @Model.HoTen.Substring(0, 1).ToUpper()
+                        </div>
+                        <p class="text-muted small mb-0">Thành viên từ @Model.NgayDangKy.ToString("dd/MM/yyyy")</p>
+                    </div>
+
+                    <hr class="mb-4">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Họ và Tên <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="hoTen" class="form-control rounded-3"
+                               value="@Model.HoTen" placeholder="Nhập họ và tên" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Số Điện Thoại <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-phone text-success"></i></span>
+                            <input type="tel" name="soDienThoai" class="form-control rounded-end"
+                                   value="@Model.SoDienThoai" placeholder="Ví dụ: 0901234567" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-envelope text-primary"></i></span>
+                            <input type="email" name="email" class="form-control rounded-end"
+                                   value="@Model.Email" placeholder="example@email.com" />
+                        </div>
+                        <div class="form-text">Email dùng để đăng nhập vào hệ thống.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Địa Chỉ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt text-danger"></i></span>
+                            <input type="text" name="diaChi" class="form-control rounded-end"
+                                   value="@Model.DiaChi" placeholder="Số nhà, đường, phường/xã, quận/huyện..." />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary fw-bold py-2 rounded-3">
+                            <i class="fas fa-save me-2"></i>Lưu Thay Đổi
+                        </button>
+                        <a asp-action="ThongTinChuNuoi" class="btn btn-outline-secondary rounded-3">
+                            Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

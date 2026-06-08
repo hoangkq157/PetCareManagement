@@ -1,0 +1,146 @@
+@model ChuNuoi
+
+@{
+    ViewData["Title"] = "Hồ Sơ Cá Nhân";
+    Layout = "~/Views/Shared/_LayoutChuNuoi.cshtml";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-1">👤 Hồ Sơ Cá Nhân</h2>
+            <p class="text-muted mb-0">Thông tin tài khoản và hoạt động của bạn tại PetCare.</p>
+        </div>
+        <a asp-action="ChinhSuaHoSo" class="btn btn-outline-primary fw-semibold px-4">
+            <i class="fas fa-pen me-2"></i>Chỉnh Sửa Hồ Sơ
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold"
+                     style="width:90px;height:90px;font-size:2.2rem;">
+                    @Model.HoTen.Substring(0, 1).ToUpper()
+                </div>
+                <h4 class="fw-bold mb-1">@Model.HoTen</h4>
+                <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill mb-3">
+                    <i class="fas fa-circle me-1" style="font-size:8px"></i> Thành viên
+                </span>
+
+                <hr class="my-2">
+
+                <div class="text-start mt-2 small text-muted">
+                    <div class="mb-2 d-flex gap-2 align-items-center">
+                        <i class="fas fa-calendar-alt text-primary"></i>
+                        <span>Ngày tham gia: <strong class="text-dark">@Model.NgayDangKy.ToString("dd/MM/yyyy")</strong></span>
+                    </div>
+                    <div class="mb-2 d-flex gap-2 align-items-center">
+                        <i class="fas fa-paw text-warning"></i>
+                        <span>Số thú cưng: <strong class="text-dark">@Model.ThuCungs.Count bé</strong></span>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <i class="fas fa-file-invoice-dollar text-success"></i>
+                        <span>Hóa đơn: <strong class="text-dark">@Model.HoaDons.Count đơn</strong></span>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <a asp-action="DoiMatKhau" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="fas fa-key me-2"></i>Đổi Mật Khẩu
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-secondary mb-4 pb-2 border-bottom">
+                    <i class="fas fa-id-card me-2 text-primary"></i>Thông Tin Chi Tiết
+                </h5>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-semibold text-uppercase mb-1">Họ và Tên</label>
+                        <div class="fw-semibold border rounded-3 px-3 py-2 bg-light">
+                            @Model.HoTen
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-semibold text-uppercase mb-1">Số Điện Thoại</label>
+                        <div class="fw-semibold border rounded-3 px-3 py-2 bg-light">
+                            <i class="fas fa-phone me-2 text-success"></i>@Model.SoDienThoai
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-semibold text-uppercase mb-1">Email</label>
+                        <div class="fw-semibold border rounded-3 px-3 py-2 bg-light">
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <span><i class="fas fa-envelope me-2 text-primary"></i>@Model.Email</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-semibold text-uppercase mb-1">Địa Chỉ</label>
+                        <div class="fw-semibold border rounded-3 px-3 py-2 bg-light">
+                            @if (!string.IsNullOrEmpty(Model.DiaChi))
+                            {
+                                <span><i class="fas fa-map-marker-alt me-2 text-danger"></i>@Model.DiaChi</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.ThuCungs.Any())
+            {
+                <div class="card border-0 shadow-sm rounded-4 p-4 mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-secondary mb-0">
+                            <i class="fas fa-paw me-2 text-warning"></i>Thú Cưng Của Tôi
+                        </h5>
+                        <a asp-action="DanhSachThuCung" class="small text-primary text-decoration-none">Xem tất cả →</a>
+                    </div>
+                    <div class="row g-2">
+                        @foreach (var pet in Model.ThuCungs.Take(4))
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="border rounded-3 p-3 text-center bg-light h-100">
+                                    <div class="mb-1" style="font-size:1.8rem">
+                                        @(pet.Loai == "Chó" ? "🐶" : pet.Loai == "Mèo" ? "🐱" : "🐾")
+                                    </div>
+                                    <div class="fw-semibold small">@pet.TenThuCung</div>
+                                    <div class="text-muted" style="font-size:11px">
+                                        @pet.Loai @(!string.IsNullOrEmpty(pet.Giong) ? $"- {pet.Giong}" : "")
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (Model.ThuCungs.Count > 4)
+                        {
+                            <div class="col-6 col-md-3">
+                                <a asp-action="DanhSachThuCung"
+                                   class="border rounded-3 p-3 text-center bg-light h-100 d-flex flex-column align-items-center justify-content-center text-decoration-none text-muted">
+                                    <div style="font-size:1.8rem">+@(Model.ThuCungs.Count - 4)</div>
+                                    <div class="small">bé khác</div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
