@@ -266,5 +266,134 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
             return RedirectToAction(nameof(DanhSachThuCung));
         }
 
+        // ─────────────────────────────────────────────────────────────────
+        // HỒ SƠ CÁ NHÂN
+        // ─────────────────────────────────────────────────────────────────
+
+        // GET: ChuNuoi/ThongTinChuNuoi
+        public async Task<IActionResult> ThongTinChuNuoi()
+        {
+            string chuNuoiIdStr = HttpContext.Session.GetString("ChuNuoiId");
+            if (string.IsNullOrEmpty(chuNuoiIdStr) || !int.TryParse(chuNuoiIdStr, out int maChuNuoi))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để xem hồ sơ.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var chuNuoi = await _context.ChuNuois
+                .Include(c => c.ThuCungs)
+                .Include(c => c.HoaDons)
+                .FirstOrDefaultAsync(c => c.MaCn == maChuNuoi);
+
+            if (chuNuoi == null)
+            {
+                TempData["Error"] = "Không tìm thấy thông tin tài khoản.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            return View(chuNuoi);
+        }
+
+        // GET: ChuNuoi/ChinhSuaHoSo
+        public async Task<IActionResult> ChinhSuaHoSo()
+        {
+            string chuNuoiIdStr = HttpContext.Session.GetString("ChuNuoiId");
+            if (string.IsNullOrEmpty(chuNuoiIdStr) || !int.TryParse(chuNuoiIdStr, out int maChuNuoi))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var chuNuoi = await _context.ChuNuois.FindAsync(maChuNuoi);
+            if (chuNuoi == null) return RedirectToAction("Login", "Auth");
+
+            return View(chuNuoi);
+        }
+
+        // POST: ChuNuoi/ChinhSuaHoSo
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChinhSuaHoSo(string hoTen, string soDienThoai, string? email, string? diaChi)
+        {
+            string chuNuoiIdStr = HttpContext.Session.GetString("ChuNuoiId");
+            if (string.IsNullOrEmpty(chuNuoiIdStr) || !int.TryParse(chuNuoiIdStr, out int maChuNuoi))
+                return RedirectToAction("Login", "Auth");
+
+            if (string.IsNullOrWhiteSpace(hoTen) || string.IsNullOrWhiteSpace(soDienThoai))
+            {
+                ViewBag.Error = "Họ tên và số điện thoại không được để trống.";
+                var cnErr = await _context.ChuNuois.FindAsync(maChuNuoi);
+                return View(cnErr);
+            }
+
+            // Kiểm tra email trùng với tài khoản khác
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                bool emailTrung = await _context.ChuNuois
+                    .AnyAsync(c => c.Email == email.Trim().ToLower() && c.MaCn != maChuNuoi);
+                if (emailTrung)
+                {
+                    ViewBag.Error = "Email này đã được sử dụng bởi tài khoản khác.";
+                    var cnErr = await _context.ChuNuois.FindAsync(maChuNuoi);
+                    return View(cnErr);
+                }
+            }
+
+            var chuNuoi = await _context.ChuNuois.FindAsync(maChuNuoi);
+            if (chuNuoi == null) return RedirectToAction("Login", "Auth");
+
+            chuNuoi.HoTen       = hoTen.Trim();
+            chuNuoi.SoDienThoai = soDienThoai.Trim();
+            chuNuoi.Email       = email?.Trim().ToLower();
+            chuNuoi.DiaChi      = diaChi?.Trim();
+
+            await _context.SaveChangesAsync();
+
+            // Cập nhật lại tên trong Session
+            HttpContext.Session.SetString("ChuNuoiName", chuNuoi.HoTen);
+
+            TempData["Success"] = "Cập nhật hồ sơ thành công!";
+            return RedirectToAction(nameof(ThongTinChuNuoi));
+        }
+
+        // GET: ChuNuoi/DoiMatKhau
+        public IActionResult DoiMatKhau()
+        {
+            if (HttpContext.Session.GetString("ChuNuoiId") == null)
+                return RedirectToAction("Login", "Auth");
+            return View();
+        }
+
+        // POST: ChuNuoi/DoiMatKhau
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DoiMatKhau(string matKhauCu, string matKhauMoi, string xacNhanMatKhau)
+        {
+            string chuNuoiIdStr = HttpContext.Session.GetString("ChuNuoiId");
+            if (string.IsNullOrEmpty(chuNuoiIdStr) || !int.TryParse(chuNuoiIdStr, out int maChuNuoi))
+                return RedirectToAction("Login", "Auth");
+
+            if (string.IsNullOrWhiteSpace(matKhauCu) || string.IsNullOrWhiteSpace(matKhauMoi))
+            { ViewBag.Error = "Vui lòng nhập đầy đủ thông tin."; return View(); }
+
+            if (matKhauMoi.Length < 6)
+            { ViewBag.Error = "Mật khẩu mới phải có ít nhất 6 ký tự."; return View(); }
+
+            if (matKhauMoi != xacNhanMatKhau)
+            { ViewBag.Error = "Mật khẩu xác nhận không khớp."; return View(); }
+
+            var chuNuoi = await _context.ChuNuois.FindAsync(maChuNuoi);
+            if (chuNuoi == null) return RedirectToAction("Login", "Auth");
+
+            if (chuNuoi.MatKhau != matKhauCu)
+            { ViewBag.Error = "Mật khẩu hiện tại không đúng."; return View(); }
+
+            chuNuoi.MatKhau = matKhauMoi;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Đổi mật khẩu thành công!";
+            return RedirectToAction(nameof(ThongTinChuNuoi));
+        }
+
     }
 }
