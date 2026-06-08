@@ -4,18 +4,13 @@
     ViewData["Title"] = "Quản lý tiêm phòng";
 }
 
-@if (TempData["Success"] != null)
+@* Layout đã xử lý TempData["Success"] và TempData["Error"] *@
+@* Chỉ hiện cảnh báo 7 ngày ở đây *@
+@if (TempData["CanhBao"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        ✅ @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        ❌ @TempData["Error"]
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        ⚠️ @TempData["CanhBao"]
+        <a asp-action="CanhBao" class="alert-link ms-2">Xem tất cả cảnh báo →</a>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
@@ -23,10 +18,17 @@
 <div class="card shadow-sm border-0">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h4 class="mb-0">💉 Danh sách tiêm phòng</h4>
-
-        <a asp-action="Create" class="btn btn-light btn-sm">
-            ➕ Thêm tiêm phòng
-        </a>
+        <div class="d-flex gap-2 align-items-center">
+            @if (ViewBag.SoCanhBao > 0)
+            {
+                <a asp-action="CanhBao" class="btn btn-warning btn-sm">
+                    ⚠️ Cảnh báo <span class="badge bg-danger">@ViewBag.SoCanhBao</span>
+                </a>
+            }
+            <a asp-action="Create" class="btn btn-light btn-sm">
+                ➕ Thêm tiêm phòng
+            </a>
+        </div>
     </div>
 
     <div class="card-body">
@@ -54,47 +56,50 @@
 
                 <tbody>
                 @{
-                    int stt = 1;
+                    int stt    = 1;
+                    var homNay   = DateOnly.FromDateTime(DateTime.Today);
+                    var sau7Ngay = homNay.AddDays(7);
                 }
 
                 @foreach (var item in Model)
                 {
-                    <tr>
+                    bool sapHan = item.NgayTiemTiep.HasValue &&
+                                  item.NgayTiemTiep.Value >= homNay &&
+                                  item.NgayTiemTiep.Value <= sau7Ngay;
+
+                    <tr class="@(sapHan ? "table-warning" : "")">
                         <td class="text-center">@stt</td>
-
-                        <td>
-                            @(item.MaTcNavigation?.TenThuCung ?? "N/A")
-                        </td>
-
-                        <td>
-                            @item.TenVaccine
-                        </td>
-
-                        <td class="text-center">
-                            @item.NgayTiem.ToString("dd/MM/yyyy")
-                        </td>
-
+                        <td>@(item.MaTcNavigation?.TenThuCung ?? "N/A")</td>
+                        <td>@item.TenVaccine</td>
+                        <td class="text-center">@item.NgayTiem.ToString("dd/MM/yyyy")</td>
                         <td class="text-center">
                             @if (item.NgayTiemTiep.HasValue)
                             {
-                                <span class="badge bg-success">
+                                int conLai = item.NgayTiemTiep.Value.DayNumber - homNay.DayNumber;
+                                <span class="badge @(sapHan ? "bg-warning text-dark" : "bg-success")">
                                     @item.NgayTiemTiep.Value.ToString("dd/MM/yyyy")
                                 </span>
+                                if (sapHan)
+                                {
+                                    <br />
+                                    <small class="text-danger fw-bold">
+                                        @(conLai == 0 ? "Hôm nay!" : $"Còn {conLai} ngày")
+                                    </small>
+                                }
                             }
                             else
                             {
-                                <span class="badge bg-secondary">
-                                    Chưa xác định
-                                </span>
+                                <span class="badge bg-secondary">Chưa xác định</span>
                             }
                         </td>
-
+                        <td class="text-center">@item.ChuKyNgay ngày</td>
                         <td class="text-center">
-                            @item.ChuKyNgay ngày
-                        </td>
-
-                        <td class="text-center">
+                            <a asp-action="Edit" asp-route-id="@item.MaTp"
+                               class="btn btn-warning btn-sm me-1">
+                                ✏️ Sửa
+                            </a>
                             <form asp-action="Delete" asp-route-id="@item.MaTp" method="post"
+                                  class="d-inline"
                                   onsubmit="return confirm('Bạn có chắc muốn xóa lịch tiêm này không?')">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-danger btn-sm">
