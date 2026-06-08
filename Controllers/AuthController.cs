@@ -23,18 +23,13 @@ public class AuthController : Controller
 
     public IActionResult Login()
     {
-        // Nếu NhanVien đã đăng nhập → về trang quản lý
         if (HttpContext.Session.GetString("NhanVienId") != null)
             return RedirectToAction("Index", "Home");
-
-        // Nếu ChuNuoi đã đăng nhập → về trang Home (tạm thời)
         if (HttpContext.Session.GetString("ChuNuoiId") != null)
             return RedirectToAction("Index", "ChuNuoi");
-
         return View();
     }
 
-    // POST /Auth/Login
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(string email, string matKhau)
@@ -45,35 +40,27 @@ public class AuthController : Controller
             return View();
         }
 
-        // ── Bước 1: Thử đăng nhập NhanVien (bằng Email) ──────────────────
         var nv = await _context.NhanViens
             .FirstOrDefaultAsync(n => n.Email == email
                                    && n.MatKhau == matKhau
                                    && n.TrangThai == true);
-
         if (nv != null)
         {
             HttpContext.Session.SetString("NhanVienId",   nv.MaNv.ToString());
             HttpContext.Session.SetString("NhanVienName", nv.HoTen);
             HttpContext.Session.SetString("NhanVienRole", nv.VaiTro);
-            // Nhân viên → trang quản lý
             return RedirectToAction("Index", "Home");
         }
 
-        // ── Bước 2: Thử đăng nhập ChuNuoi (bằng Email) ──────────
         var cn = await _context.ChuNuois
-            .FirstOrDefaultAsync(c => c.Email == email
-                                   && c.MatKhau == matKhau);
-
+            .FirstOrDefaultAsync(c => c.Email == email && c.MatKhau == matKhau);
         if (cn != null)
         {
             HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
             HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
-            // Chủ nuôi → tạm thời dùng trang Home, sau đổi sang "ChuNuoiPortal"
             return RedirectToAction("Index", "ChuNuoi");
         }
 
-        // ── Cả 2 đều thất bại ─────────────────────────────────────────────
         ViewBag.Error = "Tài khoản / mật khẩu không đúng, hoặc tài khoản đã bị khoá.";
         return View();
     }
@@ -84,14 +71,10 @@ public class AuthController : Controller
 
     public IActionResult Register()
     {
-        // Nếu ChuNuoi đã đăng nhập → về Home (tạm thời)
         if (HttpContext.Session.GetString("ChuNuoiId") != null)
             return RedirectToAction("Index", "ChuNuoi");
-
-        // Nếu NhanVien đã đăng nhập → về trang quản lý
         if (HttpContext.Session.GetString("NhanVienId") != null)
             return RedirectToAction("Index", "Home");
-
         return View();
     }
 
@@ -105,7 +88,6 @@ public class AuthController : Controller
         string? email,
         string? diaChi)
     {
-        // Giữ lại giá trị đã nhập khi có lỗi
         void GiuLai() {
             ViewBag.HoTen       = hoTen;
             ViewBag.Email       = email;
@@ -123,33 +105,30 @@ public class AuthController : Controller
         if (matKhau != xacNhanMatKhau)
         { ViewBag.Error = "Mật khẩu xác nhận không khớp."; GiuLai(); return View(); }
 
-        // Kiểm tra email trùng
-        if (await _context.NhanViens.AnyAsync(n => n.Email == email))
+        if (!string.IsNullOrWhiteSpace(email) &&
+            await _context.ChuNuois.AnyAsync(c => c.Email == email.Trim().ToLower()))
         {
-            ViewBag.Error = "Email này đã được sử dụng. Vui lòng chọn email khác.";
+            ViewBag.Error = "Email này đã được sử dụng.";
             GiuLai(); return View();
         }
 
-        // Lưu vào database
         var cn = new ChuNuoi
         {
-            HoTen        = hoTen.Trim(),
-            SoDienThoai  = soDienThoai.Trim(),
-            MatKhau      = matKhau,
-            Email        = email?.Trim().ToLower(),
-            DiaChi       = diaChi?.Trim(),
-            NgayDangKy   = DateOnly.FromDateTime(DateTime.Today)
+            HoTen       = hoTen.Trim(),
+            SoDienThoai = soDienThoai.Trim(),
+            MatKhau     = matKhau,
+            Email       = email?.Trim().ToLower(),
+            DiaChi      = diaChi?.Trim(),
+            NgayDangKy  = DateOnly.FromDateTime(DateTime.Today)
         };
 
         _context.ChuNuois.Add(cn);
         await _context.SaveChangesAsync();
 
-        // Đăng nhập luôn sau khi đăng ký
         HttpContext.Session.SetString("ChuNuoiId",   cn.MaCn.ToString());
         HttpContext.Session.SetString("ChuNuoiName", cn.HoTen);
 
         TempData["Success"] = $"Chào mừng {cn.HoTen}! Hãy thêm thú cưng của bạn.";
-        // Tạm thời điều hướng sang Home, sau đổi thành "ChuNuoiPortal" khi có giao diện
         return RedirectToAction("Index", "ChuNuoi");
     }
 
@@ -169,22 +148,53 @@ public class AuthController : Controller
             return View();
         }
 
-        var nv = await _context.NhanViens
-            .FirstOrDefaultAsync(n => n.Email == email.Trim().ToLower() && n.TrangThai == true);
+        email = email.Trim().ToLower();
 
-        ViewBag.Success = "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi. Vui lòng kiểm tra hộp thư.";
+        // Tìm trong ChuNuoi trước, sau đó NhanVien
+        string? hoTen     = null;
+        string? loaiTK    = null;
 
-        if (nv != null)
+        var cn = await _context.ChuNuois
+            .FirstOrDefaultAsync(c => c.Email == email);
+        if (cn != null)
+        {
+            hoTen  = cn.HoTen;
+            loaiTK = "ChuNuoi";
+        }
+        else
+        {
+            var nv = await _context.NhanViens
+                .FirstOrDefaultAsync(n => n.Email == email && n.TrangThai == true);
+            if (nv != null)
+            {
+                hoTen  = nv.HoTen;
+                loaiTK = "NhanVien";
+            }
+        }
+
+        // Luôn hiện thông báo giống nhau để tránh lộ thông tin
+        ViewBag.Success = "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi. Vui lòng kiểm tra hộp thư (kể cả thư mục Spam).";
+
+        if (hoTen != null && loaiTK != null)
         {
             var otp    = new Random().Next(100000, 999999).ToString();
             var hetHan = DateTime.Now.AddMinutes(5);
 
             HttpContext.Session.SetString("OTP_Code",   otp);
-            HttpContext.Session.SetString("OTP_Email",  nv.Email);
+            HttpContext.Session.SetString("OTP_Email",  email);
+            HttpContext.Session.SetString("OTP_LoaiTK", loaiTK);
             HttpContext.Session.SetString("OTP_HetHan", hetHan.ToString("o"));
 
-            try { await _emailService.SendOtpEmailAsync(nv.Email, nv.HoTen, otp); }
-            catch { /* ghi log nếu cần */ }
+            try
+            {
+                await _emailService.SendOtpEmailAsync(email, hoTen, otp);
+            }
+            catch (Exception ex)
+            {
+                // Hiện lỗi cụ thể khi debug (xóa dòng này khi production)
+                ViewBag.Success = null;
+                ViewBag.Error   = $"Không thể gửi email: {ex.Message}";
+            }
         }
 
         return View();
@@ -260,21 +270,44 @@ public class AuthController : Controller
             return View();
         }
 
-        var email = HttpContext.Session.GetString("OTP_Email");
-        var nv    = await _context.NhanViens
-            .FirstOrDefaultAsync(n => n.Email == email && n.TrangThai == true);
+        var email  = HttpContext.Session.GetString("OTP_Email");
+        var loaiTK = HttpContext.Session.GetString("OTP_LoaiTK");
 
-        if (nv == null)
+        bool daCapNhat = false;
+
+        if (loaiTK == "ChuNuoi")
+        {
+            var cn = await _context.ChuNuois
+                .FirstOrDefaultAsync(c => c.Email == email);
+            if (cn != null)
+            {
+                cn.MatKhau = matKhauMoi;
+                await _context.SaveChangesAsync();
+                daCapNhat = true;
+            }
+        }
+        else if (loaiTK == "NhanVien")
+        {
+            var nv = await _context.NhanViens
+                .FirstOrDefaultAsync(n => n.Email == email && n.TrangThai == true);
+            if (nv != null)
+            {
+                nv.MatKhau = matKhauMoi;
+                await _context.SaveChangesAsync();
+                daCapNhat = true;
+            }
+        }
+
+        if (!daCapNhat)
         {
             ViewBag.Error = "Không tìm thấy tài khoản. Vui lòng thử lại.";
             return View();
         }
 
-        nv.MatKhau = matKhauMoi;
-        await _context.SaveChangesAsync();
-
+        // Xóa toàn bộ dữ liệu OTP khỏi session
         HttpContext.Session.Remove("OTP_Code");
         HttpContext.Session.Remove("OTP_Email");
+        HttpContext.Session.Remove("OTP_LoaiTK");
         HttpContext.Session.Remove("OTP_HetHan");
         HttpContext.Session.Remove("OTP_Verified");
 
