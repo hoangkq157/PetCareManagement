@@ -97,7 +97,11 @@
                     var cn = Model.MaCnNavigation;
                     <dl class="row mb-0">
                         <dt class="col-5 text-muted">Họ tên</dt>
-                        <dd class="col-7 fw-semibold">@cn.HoTen</dd>
+                        <dd class="col-7 fw-semibold">
+                            <a asp-controller="Owner" asp-action="Details" asp-route-id="@cn.MaCn" class="text-decoration-none">
+                                @cn.HoTen
+                            </a>
+                        </dd>
 
                         <dt class="col-5 text-muted">Điện thoại</dt>
                         <dd class="col-7">
