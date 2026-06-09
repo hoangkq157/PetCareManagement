@@ -2,12 +2,14 @@
 @inject PetCareDbContext _layoutCtx
 
 @{
-    var homNayLayout = DateOnly.FromDateTime(DateTime.Today);
+   var homNayLayout  = DateOnly.FromDateTime(DateTime.Today);
+    var sau7NgayLayout = homNayLayout.AddDays(7);
 
     var soCanhBao = _layoutCtx.TiemPhongs.Count(t =>
-        t.NgayTiemTiep.HasValue &&
-        t.NgayTiemTiep.Value >= homNayLayout &&
-        t.NgayTiemTiep.Value <= homNayLayout.AddDays(7));
+        (t.NgayTiem >= homNayLayout && t.NgayTiem <= sau7NgayLayout) ||
+        (t.NgayTiemTiep.HasValue &&
+         t.NgayTiemTiep.Value >= homNayLayout &&
+         t.NgayTiemTiep.Value <= sau7NgayLayout));
 }
 <!DOCTYPE html>
 <html lang="vi">

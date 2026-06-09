@@ -2,15 +2,26 @@
 
 @{
     ViewData["Title"] = "Quản lý tiêm phòng";
+    var homNay   = DateOnly.FromDateTime(DateTime.Today);
+    var sau7Ngay = homNay.AddDays(7);
 }
 
-@* Layout đã xử lý TempData["Success"] và TempData["Error"] *@
-@* Chỉ hiện cảnh báo 7 ngày ở đây *@
+@* Layout xử lý Success/Error, chỉ hiện CanhBao ở đây *@
 @if (TempData["CanhBao"] != null)
 {
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
         ⚠️ @TempData["CanhBao"]
         <a asp-action="CanhBao" class="alert-link ms-2">Xem tất cả cảnh báo →</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* Cảnh báo thường trực nếu có lịch trong 7 ngày (không phụ thuộc TempData) *@
+@if (ViewBag.SoCanhBao > 0 && TempData["CanhBao"] == null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        ⚠️ Có <strong>@ViewBag.SoCanhBao</strong> lịch tiêm trong vòng 7 ngày tới cần chú ý.
+        <a asp-action="CanhBao" class="alert-link ms-2">Xem chi tiết →</a>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
@@ -56,34 +67,47 @@
 
                 <tbody>
                 @{
-                    int stt    = 1;
-                    var homNay   = DateOnly.FromDateTime(DateTime.Today);
-                    var sau7Ngay = homNay.AddDays(7);
+                    int stt = 1;
                 }
 
                 @foreach (var item in Model)
                 {
-                    bool sapHan = item.NgayTiemTiep.HasValue &&
-                                  item.NgayTiemTiep.Value >= homNay &&
-                                  item.NgayTiemTiep.Value <= sau7Ngay;
+                    // Check cả NgayTiem lẫn NgayTiemTiep
+                    bool ngayTiemGan = item.NgayTiem >= homNay && item.NgayTiem <= sau7Ngay;
+                    bool ngayTiepGan = item.NgayTiemTiep.HasValue &&
+                                       item.NgayTiemTiep.Value >= homNay &&
+                                       item.NgayTiemTiep.Value <= sau7Ngay;
+                    bool sapHan = ngayTiemGan || ngayTiepGan;
 
                     <tr class="@(sapHan ? "table-warning" : "")">
                         <td class="text-center">@stt</td>
                         <td>@(item.MaTcNavigation?.TenThuCung ?? "N/A")</td>
                         <td>@item.TenVaccine</td>
-                        <td class="text-center">@item.NgayTiem.ToString("dd/MM/yyyy")</td>
+
+                        <td class="text-center">
+                            @item.NgayTiem.ToString("dd/MM/yyyy")
+                            @if (ngayTiemGan)
+                            {
+                                int cl = item.NgayTiem.DayNumber - homNay.DayNumber;
+                                <br />
+                                <small class="text-danger fw-bold">
+                                    @(cl == 0 ? "Hôm nay!" : $"Còn {cl} ngày")
+                                </small>
+                            }
+                        </td>
+
                         <td class="text-center">
                             @if (item.NgayTiemTiep.HasValue)
                             {
-                                int conLai = item.NgayTiemTiep.Value.DayNumber - homNay.DayNumber;
-                                <span class="badge @(sapHan ? "bg-warning text-dark" : "bg-success")">
+                                <span class="badge @(ngayTiepGan ? "bg-warning text-dark" : "bg-success")">
                                     @item.NgayTiemTiep.Value.ToString("dd/MM/yyyy")
                                 </span>
-                                if (sapHan)
+                                @if (ngayTiepGan)
                                 {
+                                    int cl = item.NgayTiemTiep.Value.DayNumber - homNay.DayNumber;
                                     <br />
                                     <small class="text-danger fw-bold">
-                                        @(conLai == 0 ? "Hôm nay!" : $"Còn {conLai} ngày")
+                                        @(cl == 0 ? "Hôm nay!" : $"Còn {cl} ngày")
                                     </small>
                                 }
                             }
@@ -92,7 +116,9 @@
                                 <span class="badge bg-secondary">Chưa xác định</span>
                             }
                         </td>
+
                         <td class="text-center">@item.ChuKyNgay ngày</td>
+
                         <td class="text-center">
                             <a asp-action="Edit" asp-route-id="@item.MaTp"
                                class="btn btn-warning btn-sm me-1">

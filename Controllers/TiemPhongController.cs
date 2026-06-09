@@ -14,7 +14,7 @@ public class TiemPhongController : Controller
         _context = context;
     }
 
-    // Danh sách cảnh báo: những lịch có NgayTiemTiep trong 7 ngày tới
+    // Danh sách cảnh báo: NgayTiem HOẶC NgayTiemTiep trong 7 ngày tới
     public async Task<IActionResult> CanhBao()
     {
         var homNay   = DateOnly.FromDateTime(DateTime.Today);
@@ -24,10 +24,11 @@ public class TiemPhongController : Controller
             .Include(t => t.MaTcNavigation)
                 .ThenInclude(tc => tc.MaCnNavigation)
             .Where(t =>
-                t.NgayTiemTiep.HasValue &&
-                t.NgayTiemTiep.Value >= homNay &&
-                t.NgayTiemTiep.Value <= sau7Ngay)
-            .OrderBy(t => t.NgayTiemTiep)
+                (t.NgayTiem >= homNay && t.NgayTiem <= sau7Ngay) ||
+                (t.NgayTiemTiep.HasValue &&
+                 t.NgayTiemTiep.Value >= homNay &&
+                 t.NgayTiemTiep.Value <= sau7Ngay))
+            .OrderBy(t => t.NgayTiem)
             .ToListAsync();
 
         ViewBag.SoCanhBao = danhSach.Count;
@@ -45,9 +46,10 @@ public class TiemPhongController : Controller
         var sau7Ngay = homNay.AddDays(7);
         ViewBag.SoCanhBao = await _context.TiemPhongs
             .CountAsync(t =>
-                t.NgayTiemTiep.HasValue &&
-                t.NgayTiemTiep.Value >= homNay &&
-                t.NgayTiemTiep.Value <= sau7Ngay);
+                (t.NgayTiem >= homNay && t.NgayTiem <= sau7Ngay) ||
+                (t.NgayTiemTiep.HasValue &&
+                 t.NgayTiemTiep.Value >= homNay &&
+                 t.NgayTiemTiep.Value <= sau7Ngay));
 
         return View(ds);
     }
@@ -89,16 +91,27 @@ public class TiemPhongController : Controller
 
                 TempData["Success"] = "Thêm lịch tiêm phòng thành công!";
 
-                // Cảnh báo nếu NgayTiemTiep nằm trong 7 ngày tới
-                bool sapDenHan = tiemPhong.NgayTiemTiep.HasValue &&
-                                 tiemPhong.NgayTiemTiep.Value >= homNay &&
-                                 tiemPhong.NgayTiemTiep.Value <= sau7Ngay;
-                if (sapDenHan)
+                // Cảnh báo nếu NgayTiem HOẶC NgayTiemTiep nằm trong 7 ngày tới
+                bool ngayTiemGan = tiemPhong.NgayTiem >= homNay &&
+                                   tiemPhong.NgayTiem <= sau7Ngay;
+                bool ngayTiepGan = tiemPhong.NgayTiemTiep.HasValue &&
+                                   tiemPhong.NgayTiemTiep.Value >= homNay &&
+                                   tiemPhong.NgayTiemTiep.Value <= sau7Ngay;
+
+                if (ngayTiemGan || ngayTiepGan)
                 {
-                    int conLai = tiemPhong.NgayTiemTiep!.Value.DayNumber - homNay.DayNumber;
-                    string conLaiText = conLai == 0 ? "hôm nay" : $"còn {conLai} ngày nữa";
-                    TempData["CanhBao"] = $"Lịch tiêm tiếp theo vào ngày " +
-                        $"{tiemPhong.NgayTiemTiep.Value:dd/MM/yyyy} — {conLaiText}!";
+                    var msgs = new System.Collections.Generic.List<string>();
+                    if (ngayTiemGan)
+                    {
+                        int cl = tiemPhong.NgayTiem.DayNumber - homNay.DayNumber;
+                        msgs.Add($"Ngày tiêm {tiemPhong.NgayTiem:dd/MM/yyyy} — {(cl == 0 ? "hôm nay" : $"còn {cl} ngày")}");
+                    }
+                    if (ngayTiepGan)
+                    {
+                        int cl = tiemPhong.NgayTiemTiep!.Value.DayNumber - homNay.DayNumber;
+                        msgs.Add($"Lịch tiêm tiếp {tiemPhong.NgayTiemTiep.Value:dd/MM/yyyy} — {(cl == 0 ? "hôm nay" : $"còn {cl} ngày")}");
+                    }
+                    TempData["CanhBao"] = string.Join(" | ", msgs);
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -154,15 +167,27 @@ public class TiemPhongController : Controller
 
                 TempData["Success"] = "Cập nhật lịch tiêm phòng thành công!";
 
-                bool sapDenHan = tiemPhong.NgayTiemTiep.HasValue &&
-                                 tiemPhong.NgayTiemTiep.Value >= homNay &&
-                                 tiemPhong.NgayTiemTiep.Value <= sau7Ngay;
-                if (sapDenHan)
+                // Cảnh báo nếu NgayTiem HOẶC NgayTiemTiep nằm trong 7 ngày tới
+                bool ngayTiemGan = tiemPhong.NgayTiem >= homNay &&
+                                   tiemPhong.NgayTiem <= sau7Ngay;
+                bool ngayTiepGan = tiemPhong.NgayTiemTiep.HasValue &&
+                                   tiemPhong.NgayTiemTiep.Value >= homNay &&
+                                   tiemPhong.NgayTiemTiep.Value <= sau7Ngay;
+
+                if (ngayTiemGan || ngayTiepGan)
                 {
-                    int conLai = tiemPhong.NgayTiemTiep!.Value.DayNumber - homNay.DayNumber;
-                    string conLaiText = conLai == 0 ? "hôm nay" : $"còn {conLai} ngày nữa";
-                    TempData["CanhBao"] = $"Lịch tiêm tiếp theo vào ngày " +
-                        $"{tiemPhong.NgayTiemTiep.Value:dd/MM/yyyy} — {conLaiText}!";
+                    var msgs = new System.Collections.Generic.List<string>();
+                    if (ngayTiemGan)
+                    {
+                        int cl = tiemPhong.NgayTiem.DayNumber - homNay.DayNumber;
+                        msgs.Add($"Ngày tiêm {tiemPhong.NgayTiem:dd/MM/yyyy} — {(cl == 0 ? "hôm nay" : $"còn {cl} ngày")}");
+                    }
+                    if (ngayTiepGan)
+                    {
+                        int cl = tiemPhong.NgayTiemTiep!.Value.DayNumber - homNay.DayNumber;
+                        msgs.Add($"Lịch tiêm tiếp {tiemPhong.NgayTiemTiep.Value:dd/MM/yyyy} — {(cl == 0 ? "hôm nay" : $"còn {cl} ngày")}");
+                    }
+                    TempData["CanhBao"] = string.Join(" | ", msgs);
                 }
 
                 return RedirectToAction(nameof(Index));
