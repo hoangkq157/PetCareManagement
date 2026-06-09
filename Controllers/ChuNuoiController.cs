@@ -19,6 +19,30 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
             // mẫu thử hiển thị view 
             return View();
         }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            string chuNuoiIdStr = HttpContext.Session.GetString("ChuNuoiId");
+            if (string.IsNullOrEmpty(chuNuoiIdStr) || !int.TryParse(chuNuoiIdStr, out int currentId))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để xem thông tin cá nhân.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (currentId != id)
+            {
+                return Forbid();
+            }
+
+            var owner = await _context.ChuNuois
+                .Include(c => c.ThuCungs)
+                .FirstOrDefaultAsync(c => c.MaCn == id);
+
+            if (owner == null) return NotFound();
+
+            return View("ThongTinChuNuoi", owner);
+        }
+
         // --- KHU VỰC DÀNH RIÊNG CHO GIAO DIỆN KHÁCH HÀNG ---
         // =======================================================      // 1. Khách xem danh sách dịch vụ
         public IActionResult DanhSachDichVu(string search, string danhMuc)

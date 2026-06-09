@@ -1,0 +1,49 @@
+@model IEnumerable<PetCareManagement.Models.ChuNuoi>
+
+@{
+    ViewData["Title"] = "Danh sách chủ nuôi";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">👤 Chủ nuôi</h3>
+        <p class="text-muted mb-0">Danh sách chủ nuôi và số lượng thú cưng.</p>
+    </div>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input class="form-control" name="search" value="@ViewBag.Search" placeholder="Tìm theo họ tên, số điện thoại, email..." />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Tìm kiếm</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Họ tên</th>
+            <th>Điện thoại</th>
+            <th>Email</th>
+            <th>Địa chỉ</th>
+            <th>Số thú cưng</th>
+            <th class="text-end">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var owner in Model)
+        {
+            <tr>
+                <td class="fw-semibold">@owner.HoTen</td>
+                <td>@owner.SoDienThoai</td>
+                <td>@(string.IsNullOrEmpty(owner.Email) ? "—" : owner.Email)</td>
+                <td>@(string.IsNullOrEmpty(owner.DiaChi) ? "—" : owner.DiaChi)</td>
+                <td>@owner.ThuCungs.Count</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@owner.MaCn">Xem chi tiết</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
