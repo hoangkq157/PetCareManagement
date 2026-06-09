@@ -84,15 +84,16 @@ namespace PetCareManagement.Controllers
         {
             ViewData["MaNv"] = new SelectList(_context.NhanViens, "MaNv", "HoTen");
             ViewData["MaTc"] = new SelectList(_context.ThuCungs, "MaTc", "TenThuCung");
+
+            ViewBag.DichVus = _context.DichVus.Where(dv => dv.TrangThai == true).ToList();
+
             return View();
         }
 
         // POST: LichHen/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LichHen lichHen)
+        public async Task<IActionResult> Create(LichHen lichHen, int? maDichVu)  // <-- thêm int? maDichVu
         {
             lichHen.TrangThai = "ChoDuyet";
             lichHen.NgayTao = DateTime.Now;
@@ -112,38 +113,45 @@ namespace PetCareManagement.Controllers
 
                 if (trungLich)
                 {
-                    ModelState.AddModelError("",
-                        "Nhân viên này đã có lịch vào khung giờ đó.");
+                    ModelState.AddModelError("", "Nhân viên này đã có lịch vào khung giờ đó.");
                 }
                 else
                 {
                     _context.Add(lichHen);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();  // lưu LichHen trước để có MaLh
 
-                    TempData["Success"] =
-                        "Đặt lịch thành công!";
+                    // ===== LƯU DỊCH VỤ (MỚI THÊM) =====
+                    if (maDichVu.HasValue)
+                    {
+                        var dichVu = await _context.DichVus.FindAsync(maDichVu.Value);
+                        if (dichVu != null)
+                        {
+                            // Lấy đơn giá (tạm dùng GiaCho; bạn có thể tuỳ chỉnh theo loại thú)
+                            var chiTiet = new LichHenDichVu
+                            {
+                                MaLh   = lichHen.MaLh,
+                                MaDv   = maDichVu.Value,
+                                SoLuong = 1,
+                                DonGia  = dichVu.GiaCho
+                            };
+                            _context.LichHenDichVus.Add(chiTiet);
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    // ===== KẾT THÚC LƯU DỊCH VỤ =====
 
+                    TempData["Success"] = "Đặt lịch thành công!";
                     return RedirectToAction(nameof(Index));
                 }
             }
 
-            ViewData["MaNv"] = new SelectList(
-                _context.NhanViens,
-                "MaNv",
-                "HoTen",
-                lichHen.MaNv);
-
-            ViewData["MaTc"] = new SelectList(
-                _context.ThuCungs,
-                "MaTc",
-                "TenThuCung",
-                lichHen.MaTc);
+            ViewData["MaNv"] = new SelectList(_context.NhanViens, "MaNv", "HoTen", lichHen.MaNv);
+            ViewData["MaTc"] = new SelectList(_context.ThuCungs, "MaTc", "TenThuCung", lichHen.MaTc);
+            ViewBag.DichVus = _context.DichVus.Where(dv => dv.TrangThai == true).ToList();  // <-- giữ lại list khi lỗi
 
             return View(lichHen);
         }
         // DoiTrangThai cap nhat trang thai lich hen ma khong can vao trang edit
-     // DoiTrangThai cap nhat trang thai lich hen ma khong can vao trang edit
-    // DoiTrangThai cap nhat trang thai lich hen ma khong can vao trang edit
         [HttpPost]
         public async Task<IActionResult> DoiTrangThai(int id, string trangThai)
         {
@@ -178,35 +186,36 @@ namespace PetCareManagement.Controllers
             TempData["Success"] = trangThai == "XacNhan" ? "Đã duyệt và gán nhân viên thành công!" : "Đã hủy lịch hẹn.";
             return RedirectToAction(nameof(Index));
         }
-        // GET: LichHen/Edit/5
+
+       // GET: LichHen/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var lichHen = await _context.LichHens.FindAsync(id);
-            if (lichHen == null)
-            {
-                return NotFound();
-            }
+            var lichHen = await _context.LichHens
+                .Include(l => l.LichHenDichVus)   // <-- load dịch vụ hiện tại
+                .FirstOrDefaultAsync(l => l.MaLh == id);
+
+            if (lichHen == null) return NotFound();
+
             ViewData["MaNv"] = new SelectList(_context.NhanViens, "MaNv", "HoTen", lichHen.MaNv);
             ViewData["MaTc"] = new SelectList(_context.ThuCungs, "MaTc", "TenThuCung", lichHen.MaTc);
+            ViewBag.DichVus  = _context.DichVus.Where(dv => dv.TrangThai == true).ToList(); // <-- danh sách dịch vụ
+
+            // Lấy MaDv đang được chọn (nếu có) để pre-select dropdown
+            ViewBag.MaDichVuHienTai = lichHen.LichHenDichVus.FirstOrDefault()?.MaDv;
+
             return View(lichHen);
         }
 
         // POST: LichHen/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaLh,MaTc,MaNv,NgayHen,GioHen,TrangThai,GhiChu,NgayTao")] LichHen lichHen)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("MaLh,MaTc,MaNv,NgayHen,GioHen,TrangThai,GhiChu,NgayTao")] LichHen lichHen,
+            int? maDichVu)  // <-- thêm tham số dịch vụ
         {
-            if (id != lichHen.MaLh)
-            {
-                return NotFound();
-            }
+            if (id != lichHen.MaLh) return NotFound();
 
             ModelState.Remove(nameof(LichHen.MaTcNavigation));
             ModelState.Remove(nameof(LichHen.MaNvNavigation));
@@ -217,31 +226,41 @@ namespace PetCareManagement.Controllers
                 {
                     _context.Update(lichHen);
                     await _context.SaveChangesAsync();
+
+                    // Xoá dịch vụ cũ của lịch hẹn này
+                    var dichVuCu = _context.LichHenDichVus.Where(ld => ld.MaLh == id);
+                    _context.LichHenDichVus.RemoveRange(dichVuCu);
+
+                    // Thêm dịch vụ mới nếu người dùng có chọn
+                    if (maDichVu.HasValue)
+                    {
+                        var dichVu = await _context.DichVus.FindAsync(maDichVu.Value);
+                        if (dichVu != null)
+                        {
+                            _context.LichHenDichVus.Add(new LichHenDichVu
+                            {
+                                MaLh    = id,
+                                MaDv    = maDichVu.Value,
+                                SoLuong = 1,
+                                DonGia  = dichVu.GiaCho
+                            });
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LichHenExists(lichHen.MaLh))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!LichHenExists(lichHen.MaLh)) return NotFound();
+                    else throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
-            ViewData["MaNv"] = new SelectList(
-                                            _context.NhanViens,
-                                            "MaNv",
-                                            "HoTen",
-                                            lichHen.MaNv);
 
-            ViewData["MaTc"] = new SelectList(
-                                            _context.ThuCungs,
-                                            "MaTc",
-                                            "TenThuCung",
-                                            lichHen.MaTc);
+            ViewData["MaNv"] = new SelectList(_context.NhanViens, "MaNv", "HoTen", lichHen.MaNv);
+            ViewData["MaTc"] = new SelectList(_context.ThuCungs, "MaTc", "TenThuCung", lichHen.MaTc);
+            ViewBag.DichVus  = _context.DichVus.Where(dv => dv.TrangThai == true).ToList();
+            ViewBag.MaDichVuHienTai = maDichVu;
 
             return View(lichHen);
         }
