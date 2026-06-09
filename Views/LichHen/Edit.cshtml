@@ -33,6 +33,26 @@
                 <span asp-validation-for="GioHen" class="text-danger"></span>
             </div>
             <div class="form-group">
+    <label class="control-label">Dịch Vụ</label>
+    <select name="maDichVu" class="form-control">
+        <option value="">-- Không chọn dịch vụ --</option>
+        @foreach (var dv in ViewBag.DichVus)
+        {
+            int maDv = dv.MaDv;
+            int? maDvHienTai = ViewBag.MaDichVuHienTai;
+
+            if (maDv == maDvHienTai)
+            {
+                <option value="@maDv" selected>@dv.TenDichVu</option>
+            }
+            else
+            {
+                <option value="@maDv">@dv.TenDichVu</option>
+            }
+        }
+    </select>
+</div>
+            <div class="form-group">
                 <label class="control-label">Trạng Thái</label>
                 <input asp-for="TrangThai" class="form-control" />
                 <span asp-validation-for="TrangThai" class="text-danger"></span>

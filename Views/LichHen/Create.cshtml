@@ -29,6 +29,16 @@
                 <input asp-for="GioHen" class="form-control" type="time" />
                 <span asp-validation-for="GioHen" class="text-danger"></span>
             </div>
+                <div class="form-group">
+                <label class="control-label">Dịch Vụ</label>
+                <select name="maDichVu" class="form-control">
+                    <option value="">-- Chọn dịch vụ --</option>
+                    @foreach (var dv in ViewBag.DichVus)
+                    {
+                        <option value="@dv.MaDv">@dv.TenDichVu</option>
+                    }
+                </select>
+            </div>
             <div class="form-group">
                 <label class="control-label">Ghi Chú</label>
                 <input asp-for="GhiChu" class="form-control" />
