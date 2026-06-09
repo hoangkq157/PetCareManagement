@@ -89,6 +89,13 @@
             <p>Hệ thống quản lý thú cưng</p>
         </div>
         <div class="login-body">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success py-2 mb-3" role="alert">
+                    ✅ @TempData["Success"]
+                </div>
+            }
 
             @if (ViewBag.Error != null)
             {
