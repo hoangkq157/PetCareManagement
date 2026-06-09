@@ -16,42 +16,58 @@
         }
         else
         {
-            <p class="text-muted mb-3">Có <strong>@Model.Count</strong> lịch tiêm cần thực hiện trong 7 ngày tới.</p>
+            <p class="text-muted mb-3">
+                Có <strong>@Model.Count</strong> lịch tiêm cần chú ý trong 7 ngày tới.
+            </p>
 
             <table class="table table-bordered align-middle">
                 <thead class="table-light">
                     <tr class="text-center">
                         <th>Tên thú cưng</th>
                         <th>Chủ nuôi</th>
-                        <th>Số điện thoại</th>
+                        <th>SĐT</th>
                         <th>Vaccine</th>
-                        <th>Ngày tiêm tiếp</th>
+                        <th>Loại cảnh báo</th>
+                        <th>Ngày</th>
                         <th>Còn lại</th>
                     </tr>
                 </thead>
                 <tbody>
                 @{
-                    var homNay = DateOnly.FromDateTime(DateTime.Today);
+                    var homNay   = DateOnly.FromDateTime(DateTime.Today);
+                    var sau7Ngay = homNay.AddDays(7);
                 }
                 @foreach (var tp in Model)
                 {
-                    var conLai   = tp.NgayTiemTiep!.Value.DayNumber - homNay.DayNumber;
-                    var rowClass = conLai <= 3 ? "table-danger" : "table-warning";
+                    // Kiểm tra loại nào trong 7 ngày
+                    bool tiem    = tp.NgayTiem >= homNay && tp.NgayTiem <= sau7Ngay;
+                    bool tiemTiep = tp.NgayTiemTiep.HasValue &&
+                                    tp.NgayTiemTiep.Value >= homNay &&
+                                    tp.NgayTiemTiep.Value <= sau7Ngay;
+
+                    // Dùng ngày gần nhất để tính còn lại
+                    DateOnly ngayCanh = tiem ? tp.NgayTiem : tp.NgayTiemTiep!.Value;
+                    int conLai = ngayCanh.DayNumber - homNay.DayNumber;
+                    string rowClass = conLai <= 3 ? "table-danger" : "table-warning";
+
                     <tr class="@rowClass">
                         <td>@tp.MaTcNavigation?.TenThuCung</td>
                         <td>@tp.MaTcNavigation?.MaCnNavigation?.HoTen</td>
                         <td>@tp.MaTcNavigation?.MaCnNavigation?.SoDienThoai</td>
                         <td>@tp.TenVaccine</td>
-                        <td class="text-center">@tp.NgayTiemTiep?.ToString("dd/MM/yyyy")</td>
                         <td class="text-center">
-                            @if (conLai == 0)
+                            @if (tiem)
                             {
-                                <strong class="text-danger">Hôm nay!</strong>
+                                <span class="badge bg-primary">Ngày tiêm</span>
                             }
-                            else
+                            @if (tiemTiep)
                             {
-                                <strong>Còn @conLai ngày</strong>
+                                <span class="badge bg-info text-dark">Tiêm tiếp theo</span>
                             }
+                        </td>
+                        <td class="text-center">@ngayCanh.ToString("dd/MM/yyyy")</td>
+                        <td class="text-center fw-bold">
+                            @(conLai == 0 ? "Hôm nay!" : $"Còn {conLai} ngày")
                         </td>
                     </tr>
                 }

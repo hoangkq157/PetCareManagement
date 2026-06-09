@@ -11,7 +11,6 @@
     </div>
 
     <div class="card-body">
-
         <form asp-action="Create" method="post">
 
             <div asp-validation-summary="All" class="alert alert-danger"></div>
@@ -40,7 +39,7 @@
                        id="NgayTiem"
                        class="form-control"
                        min="@homNay" />
-                <div class="form-text text-muted">Chỉ được chọn từ hôm nay trở đi.</div>
+               
             </div>
 
             <div class="mb-3">
@@ -52,20 +51,7 @@
                        min="1" />
             </div>
 
-            @* Preview ngày tiêm tiếp theo *@
-            <div class="mb-3" id="previewWrapper" style="display:none">
-                <label class="form-label text-muted">Ngày tiêm tiếp theo (dự kiến)</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light">📅</span>
-                    <input type="text" id="previewNgayTiep" class="form-control" readonly />
-                </div>
-                <div id="canhBaoGanWrapper" class="mt-2" style="display:none">
-                    <div class="alert alert-warning py-2 mb-0">
-                        ⚠️ <strong>Lưu ý:</strong> Ngày tiêm này nằm trong vòng 7 ngày tới —
-                        sẽ tự động xuất hiện trong danh sách <strong>Cảnh báo</strong>.
-                    </div>
-                </div>
-            </div>
+           
 
             <div class="mb-3">
                 <label asp-for="LieuLuong" class="form-label"></label>
@@ -86,46 +72,5 @@
             <a asp-action="Index" class="btn btn-secondary">↩ Quay lại</a>
 
         </form>
-
     </div>
 </div>
-
-@section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-
-    <script>
-        function tinhNgayTiep() {
-            const ngayTiem  = document.getElementById('NgayTiem').value;
-            const chuKy     = parseInt(document.getElementById('ChuKyNgay').value);
-            const wrapper   = document.getElementById('previewWrapper');
-            const canhBao   = document.getElementById('canhBaoGanWrapper');
-            const previewEl = document.getElementById('previewNgayTiep');
-
-            if (!ngayTiem || !chuKy || chuKy < 1) {
-                wrapper.style.display = 'none';
-                return;
-            }
-
-            const ngay = new Date(ngayTiem);
-            ngay.setDate(ngay.getDate() + chuKy);
-
-            // Hiển thị dd/MM/yyyy
-            const dd   = String(ngay.getDate()).padStart(2, '0');
-            const mm   = String(ngay.getMonth() + 1).padStart(2, '0');
-            const yyyy = ngay.getFullYear();
-            previewEl.value = `${dd}/${mm}/${yyyy}`;
-            wrapper.style.display = 'block';
-
-            // Kiểm tra có trong vòng 7 ngày không
-            const homNay   = new Date();
-            homNay.setHours(0, 0, 0, 0);
-            const sau7Ngay = new Date(homNay);
-            sau7Ngay.setDate(sau7Ngay.getDate() + 7);
-
-            canhBao.style.display = (ngay >= homNay && ngay <= sau7Ngay) ? 'block' : 'none';
-        }
-
-        document.getElementById('NgayTiem').addEventListener('change', tinhNgayTiep);
-        document.getElementById('ChuKyNgay').addEventListener('input', tinhNgayTiep);
-    </script>
-}
