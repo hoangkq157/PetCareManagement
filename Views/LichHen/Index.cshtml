@@ -1,7 +1,7 @@
 @model IEnumerable<PetCareManagement.Models.LichHen>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Danh sách lịch hẹn";
 }
 
 <h1>Danh Sách Lịch Hẹn</h1>
@@ -25,6 +25,7 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
+            <th>#</th>
             <th>
                 Ngày Hẹn
             </th>
@@ -54,8 +55,12 @@
         </tr>
     </thead>
     <tbody>
+@{
+    int stt = 1;
+}
 @foreach (var item in Model) {
         <tr>
+            <td class="text-center text-muted">@stt</td>
             <td>
                 @Html.DisplayFor(modelItem => item.NgayHen)
             </td>
@@ -160,6 +165,7 @@
 
 </td>
         </tr>
+    stt++;
 }
     </tbody>
 </table>
