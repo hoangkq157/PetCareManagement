@@ -145,6 +145,7 @@ public class ThuCungController : Controller
         var tc = await _context.ThuCungs
             .Include(t => t.MaCnNavigation)
             .Include(t => t.LichHens)
+                .ThenInclude(l => l.HoaDons)
             .Include(t => t.TiemPhongs)
             .FirstOrDefaultAsync(t => t.MaTc == id);
 
@@ -159,12 +160,35 @@ public class ThuCungController : Controller
     {
         if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
 
-        var tc = await _context.ThuCungs.FindAsync(id);
+        var tc = await _context.ThuCungs
+            .Include(t => t.LichHens)
+                .ThenInclude(l => l.LichHenDichVus)
+            .Include(t => t.LichHens)
+                .ThenInclude(l => l.HoaDons)
+            .Include(t => t.TiemPhongs)
+            .FirstOrDefaultAsync(t => t.MaTc == id);
+
         if (tc != null)
         {
+            // Bước 1: Xóa HoaDon trước (FK → LichHen, không có CASCADE)
+            foreach (var lh in tc.LichHens)
+                _context.HoaDons.RemoveRange(lh.HoaDons);
+
+            // Bước 2: Xóa LichHen_DichVu (có CASCADE nhưng xóa tường minh cho an toàn)
+            foreach (var lh in tc.LichHens)
+                _context.LichHenDichVus.RemoveRange(lh.LichHenDichVus);
+
+            // Bước 3: Xóa LichHen (FK MaTc NOT NULL, không thể SET NULL)
+            _context.LichHens.RemoveRange(tc.LichHens);
+
+            // Bước 4: Xóa TiemPhong (đã có CASCADE trong SQL nhưng xóa tường minh)
+            _context.TiemPhongs.RemoveRange(tc.TiemPhongs);
+
+            // Bước 5: Xóa ThuCung
             _context.ThuCungs.Remove(tc);
+
             await _context.SaveChangesAsync();
-            TempData["Success"] = $"Đã xoá '{tc.TenThuCung}'.";
+            TempData["Success"] = $"Đã xoá '{tc.TenThuCung}' và toàn bộ dữ liệu liên quan.";
         }
         return RedirectToAction(nameof(Index));
     }

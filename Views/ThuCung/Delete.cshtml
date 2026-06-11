@@ -37,13 +37,18 @@
         @{
             var lichHenCount   = Model.LichHens?.Count ?? 0;
             var tiemPhongCount = Model.TiemPhongs?.Count ?? 0;
+            var hoaDonCount    = Model.LichHens?.Sum(l => l.HoaDons?.Count ?? 0) ?? 0;
         }
 
         @if (lichHenCount > 0 || tiemPhongCount > 0)
         {
             <div class="alert alert-warning mb-3 small">
-                ⚠️ Thú cưng này còn <strong>@lichHenCount lịch hẹn</strong>
-                và <strong>@tiemPhongCount bản ghi tiêm phòng</strong>.
+                ⚠️ Thú cưng này còn <strong>@lichHenCount lịch hẹn</strong>,
+                <strong>@tiemPhongCount bản ghi tiêm phòng</strong>
+                @if (hoaDonCount > 0)
+                {
+                    <span>và <strong>@hoaDonCount hoá đơn</strong></span>
+                }.
                 Tất cả dữ liệu liên quan cũng sẽ bị xoá.
             </div>
         }
