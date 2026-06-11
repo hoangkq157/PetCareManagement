@@ -55,10 +55,13 @@ else
                 </tr>
             </thead>
             <tbody>
+                @{
+                    int stt = 1;
+                }
                 @foreach (var tc in Model)
                 {
                     <tr>
-                        <td class="text-muted small">@tc.MaTc</td>
+                        <td class="text-center text-muted small">@stt</td>
                         <td class="fw-semibold">
                             @{
                                 var icon = tc.Loai == "Chó" ? "🐶" : tc.Loai == "Mèo" ? "🐱" : "🐾";
@@ -98,6 +101,7 @@ else
                                class="btn btn-outline-danger btn-sm" title="Xoá">🗑️</a>
                         </td>
                     </tr>
+                    stt++;
                 }
             </tbody>
         </table>

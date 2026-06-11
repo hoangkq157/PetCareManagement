@@ -23,6 +23,7 @@
 <table class="table table-bordered table-hover align-middle">
     <thead class="table-light">
         <tr>
+            <th>#</th>
             <th>Họ tên</th>
             <th>Điện thoại</th>
             <th>Email</th>
@@ -32,9 +33,13 @@
         </tr>
     </thead>
     <tbody>
+        @{
+            int stt = 1;
+        }
         @foreach (var owner in Model)
         {
             <tr>
+                <td class="text-center text-muted">@stt</td>
                 <td class="fw-semibold">@owner.HoTen</td>
                 <td>@owner.SoDienThoai</td>
                 <td>@(string.IsNullOrEmpty(owner.Email) ? "—" : owner.Email)</td>
@@ -44,6 +49,7 @@
                     <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@owner.MaCn">Xem chi tiết</a>
                 </td>
             </tr>
+            stt++;
         }
     </tbody>
 </table>
