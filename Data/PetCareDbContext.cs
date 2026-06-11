@@ -38,9 +38,9 @@ public partial class PetCareDbContext : DbContext
         {
             entity.HasKey(e => e.MaCn).HasName("PK_ChuNuoi");
 
-            entity.HasIndex(e => e.SoDienThoai)
+            entity.HasIndex(e => e.Email)
                   .IsUnique()
-                  .HasDatabaseName("UQ_ChuNuoi_SoDT");
+                  .HasDatabaseName("UQ_ChuNuoi_Email");
 
             entity.Property(e => e.NgayDangKy).HasDefaultValueSql("(CONVERT([date],getdate()))");
         });
