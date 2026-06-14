@@ -20,9 +20,13 @@ namespace PetCareManagement.Controllers
             _context = context;
         }
 
+        private bool DaDangNhap() => HttpContext.Session.GetString("NhanVienId") != null;
+
         // GET: LichHen
         public async Task<IActionResult> Index(string? trangThai, DateOnly? ngay, string? searchTenChuNuoi)
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             var query = _context.LichHens
                 .Include(l => l.MaTcNavigation)          // load Thú cưng
                     .ThenInclude(t => t.MaCnNavigation)   // load Chủ nuôi qua Thú cưng
@@ -60,6 +64,8 @@ namespace PetCareManagement.Controllers
         // GET: LichHen/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             if (id == null)
             {
                 return NotFound();
@@ -82,6 +88,8 @@ namespace PetCareManagement.Controllers
         // GET: LichHen/Create
         public IActionResult Create()
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             ViewData["MaNv"] = new SelectList(_context.NhanViens, "MaNv", "HoTen");
             ViewData["MaTc"] = new SelectList(_context.ThuCungs, "MaTc", "TenThuCung");
 
@@ -95,6 +103,8 @@ namespace PetCareManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(LichHen lichHen, int? maDichVu)  // <-- thêm int? maDichVu
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             lichHen.TrangThai = "ChoDuyet";
             lichHen.NgayTao = DateTime.Now;
 
@@ -190,6 +200,8 @@ namespace PetCareManagement.Controllers
        // GET: LichHen/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             if (id == null) return NotFound();
 
             var lichHen = await _context.LichHens
@@ -215,6 +227,8 @@ namespace PetCareManagement.Controllers
             [Bind("MaLh,MaTc,MaNv,NgayHen,GioHen,TrangThai,GhiChu,NgayTao")] LichHen lichHen,
             int? maDichVu)  // <-- thêm tham số dịch vụ
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             if (id != lichHen.MaLh) return NotFound();
 
             ModelState.Remove(nameof(LichHen.MaTcNavigation));
@@ -268,6 +282,8 @@ namespace PetCareManagement.Controllers
         // GET: LichHen/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             if (id == null)
             {
                 return NotFound();
@@ -290,6 +306,8 @@ namespace PetCareManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
             var lichHen = await _context.LichHens.FindAsync(id);
             if (lichHen != null)
             {

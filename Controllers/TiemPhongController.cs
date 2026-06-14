@@ -14,9 +14,12 @@ public class TiemPhongController : Controller
         _context = context;
     }
 
+    private bool DaDangNhap() => HttpContext.Session.GetString("NhanVienId") != null;
+
     // Danh sách cảnh báo: NgayTiem HOẶC NgayTiemTiep trong 7 ngày tới
     public async Task<IActionResult> CanhBao()
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
         var homNay   = DateOnly.FromDateTime(DateTime.Today);
         var sau7Ngay = homNay.AddDays(7);
 
@@ -38,6 +41,8 @@ public class TiemPhongController : Controller
     // Danh sách tiêm phòng
     public async Task<IActionResult> Index()
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
         var ds = await _context.TiemPhongs
             .Include(t => t.MaTcNavigation)
             .ToListAsync();
@@ -57,6 +62,8 @@ public class TiemPhongController : Controller
     // GET: TiemPhong/Create
     public async Task<IActionResult> Create()
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
         ViewBag.DsThuCung = await _context.ThuCungs
             .OrderBy(t => t.TenThuCung)
             .ToListAsync();
@@ -68,6 +75,8 @@ public class TiemPhongController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TiemPhong tiemPhong)
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
         ModelState.Remove("MaTcNavigation");
 
         if (ModelState.IsValid)
@@ -131,6 +140,8 @@ public class TiemPhongController : Controller
     // GET: TiemPhong/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
         var tiemPhong = await _context.TiemPhongs.FindAsync(id);
         if (tiemPhong == null)
         {
@@ -149,6 +160,8 @@ public class TiemPhongController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, TiemPhong tiemPhong)
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
         if (id != tiemPhong.MaTp)
             return NotFound();
 
@@ -211,6 +224,8 @@ public class TiemPhongController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
+        if (!DaDangNhap()) return RedirectToAction("Login", "Auth");
+
         var tiemPhong = await _context.TiemPhongs.FindAsync(id);
         if (tiemPhong == null)
         {

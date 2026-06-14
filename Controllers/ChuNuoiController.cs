@@ -16,7 +16,8 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
         }
         public IActionResult Index()
         {
-            // mẫu thử hiển thị view 
+            if (HttpContext.Session.GetString("ChuNuoiId") == null)
+                return RedirectToAction("Login", "Auth");
             return View();
         }
 
@@ -95,7 +96,9 @@ namespace PetCareManagement.Controllers // Thay PetCareManagement bằng tên pr
         [HttpGet]
         public IActionResult DatLich()
         {
-            // Truyền danh sách dịch vụ ra View để khách chọn trong thẻ <select>
+            if (HttpContext.Session.GetString("ChuNuoiId") == null)
+                return RedirectToAction("Login", "Auth");
+
             ViewBag.DichVus = _context.DichVus.Where(dv => dv.TrangThai == true).ToList();
             return View();
         }
